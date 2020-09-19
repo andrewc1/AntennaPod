@@ -20,6 +20,14 @@
                   android:title="@string/sort_duration_short_long"/>
             <item android:id="@+id/sort_duration_long_short"
                   android:title="@string/sort_duration_long_short"/>
+            <item android:id="@+id/sort_size_small_large"
+                android:title="@string/sort_size_small_large"/>
+            <item android:id="@+id/sort_size_large_small"
+                android:title="@string/sort_size_large_small"/>
+            <item android:id="@+id/sort_density_low_high"
+                android:title="@string/sort_density_low_high"/>
+            <item android:id="@+id/sort_density_high_low"
+                android:title="@string/sort_density_high_low"/>
         </menu>
     </item>
 

@@ -298,6 +298,8 @@
     <string name="keep_sorted">Keep sorted</string>
     <string name="date">Date</string>
     <string name="duration">Duration</string>
+    <string name="size">Size</string>
+    <string name="density">Density</string>
     <string name="episode_title">Episode title</string>
     <string name="feed_title">Podcast title</string>
     <string name="random">Random</string>
@@ -762,6 +764,10 @@
     <string name="sort_date_old_new">Date (Old \u2192 New)</string>
     <string name="sort_duration_short_long">Duration (Short \u2192 Long)</string>
     <string name="sort_duration_long_short">Duration (Long \u2192 Short)</string>
+    <string name="sort_size_small_large">Size (Small \u2192 Large)</string>
+    <string name="sort_size_large_small">Size (Large \u2192 Small)</string>
+    <string name="sort_density_low_high">Density (Low \u2192 High)</string>
+    <string name="sort_density_high_low">Density (High \u2192 Low)</string>
 
     <string name="sort_a_z">A \u2192 Z</string>
     <string name="sort_z_a">Z \u2192 A</string>

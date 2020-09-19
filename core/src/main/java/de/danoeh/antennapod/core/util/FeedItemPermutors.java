@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.danoeh.antennapod.core.feed.FeedItem;
+import de.danoeh.antennapod.core.feed.FeedMedia;
 
 /**
  * Provides method for sorting the a list of {@link FeedItem} according to rules.
@@ -47,6 +48,58 @@ public class FeedItemPermutors {
                 break;
             case DURATION_LONG_SHORT:
                 comparator = (f1, f2) -> Integer.compare(duration(f2), duration(f1));
+                break;
+            case SIZE_SMALL_LARGE:
+                comparator = (f1, f2) -> {
+                    FeedMedia f1Media = f1.getMedia();
+                    FeedMedia f2Media = f2.getMedia();
+                    long size1 = f1Media != null ? f1Media.getSize() : -1;
+                    long size2 = f2Media != null ? f2Media.getSize() : -1;
+
+                    return Long.compare(size1, size2);
+                };
+                break;
+            case SIZE_LARGE_SMALL:
+                comparator = (f1, f2) -> {
+                    FeedMedia f1Media = f1.getMedia();
+                    FeedMedia f2Media = f2.getMedia();
+                    long size1 = f1Media != null ? f1Media.getSize() : -1;
+                    long size2 = f2Media != null ? f2Media.getSize() : -1;
+
+                    return -1 * Long.compare(size1, size2);
+                };
+                break;
+            case DENSITY_LOW_HIGH:
+                comparator = (f1, f2) -> {
+                    FeedMedia f1Media = f1.getMedia();
+                    FeedMedia f2Media = f2.getMedia();
+                    long size1 = f1Media != null ? f1Media.getSize() : -1;
+                    long size2 = f2Media != null ? f2Media.getSize() : -1;
+                    // use duration + 1 so we're not dividing by 0 if duration == 0
+                    int duration1 = f1Media != null ? f1Media.getDuration() + 1: 1;
+                    int duration2 = f2Media != null ? f2Media.getDuration() + 1: 1;
+
+                    double density1 = (double)size1 / duration1;
+                    double density2 = (double)size2 / duration2;
+
+                    return Double.compare(density1, density2);
+                };
+                break;
+            case DENSITY_HIGH_LOW:
+                comparator = (f1, f2) -> {
+                    FeedMedia f1Media = f1.getMedia();
+                    FeedMedia f2Media = f2.getMedia();
+                    long size1 = f1Media != null ? f1Media.getSize() : -1;
+                    long size2 = f2Media != null ? f2Media.getSize() : -1;
+                    // use duration + 1 so we're not dividing by 0 if duration == 0
+                    int duration1 = f1Media != null ? f1Media.getDuration() + 1: 1;
+                    int duration2 = f2Media != null ? f2Media.getDuration() + 1: 1;
+
+                    double density1 = (double)size1 / duration1;
+                    double density2 = (double)size2 / duration2;
+
+                    return -1 * Double.compare(density1, density2);
+                };
                 break;
             case FEED_TITLE_A_Z:
                 comparator = (f1, f2) -> feedTitle(f1).compareTo(feedTitle(f2));

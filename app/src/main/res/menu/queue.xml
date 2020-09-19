@@ -57,6 +57,34 @@
             </item>
 
             <item
+                android:id="@+id/queue_sort_size"
+                android:title="@string/size">
+
+                <menu>
+                    <item
+                        android:id="@+id/queue_sort_size_asc"
+                        android:title="@string/ascending"/>
+                    <item
+                        android:id="@+id/queue_sort_size_desc"
+                        android:title="@string/descending"/>
+                </menu>
+            </item>
+
+            <item
+                android:id="@+id/queue_sort_density"
+                android:title="@string/density">
+
+                <menu>
+                    <item
+                        android:id="@+id/queue_sort_density_asc"
+                        android:title="@string/ascending"/>
+                    <item
+                        android:id="@+id/queue_sort_density_desc"
+                        android:title="@string/descending"/>
+                </menu>
+            </item>
+
+            <item
                 android:id="@+id/queue_sort_episode_title"
                 android:title="@string/episode_title">
 

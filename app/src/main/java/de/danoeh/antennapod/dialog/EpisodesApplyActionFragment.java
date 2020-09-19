@@ -333,6 +333,54 @@ public class EpisodesApplyActionFragment extends Fragment {
         refreshCheckboxes();
     }
 
+    private void sortBySize(final boolean reverse) {
+        Collections.sort(episodes, (lhs, rhs) -> {
+            int ordering;
+            if (!lhs.hasMedia()) {
+                ordering = 1;
+            } else if (!rhs.hasMedia()) {
+                ordering = -1;
+            } else {
+                ordering = Long.compare(lhs.getMedia().getSize(), rhs.getMedia().getSize());
+            }
+            if(reverse) {
+                return -1 * ordering;
+            } else {
+                return ordering;
+            }
+        });
+        refreshTitles();
+        refreshCheckboxes();
+    }
+
+    private void sortByDensity(final boolean reverse) {
+        Collections.sort(episodes, (lhs, rhs) -> {
+            int ordering;
+            if (!lhs.hasMedia()) {
+                ordering = 1;
+            } else if (!rhs.hasMedia()) {
+                ordering = -1;
+            } else {
+                long lsize = lhs.getMedia().getSize();
+                long rsize = rhs.getMedia().getSize();
+                // use duration + 1 so we're not dividing by 0 if duration == 0
+                int lduration = lhs.getMedia().getDuration() + 1;
+                int rduration = rhs.getMedia().getDuration() + 1;
+                double ldensity = lsize/lduration;
+                double rdensity = rsize/rduration;
+
+                ordering = Double.compare(ldensity, rdensity);
+            }
+            if(reverse) {
+                return -1 * ordering;
+            } else {
+                return ordering;
+            }
+        });
+        refreshTitles();
+        refreshCheckboxes();
+    }
+
     private void checkAll() {
         for (FeedItem episode : episodes) {
             if (!checkedIds.contains(episode.getId())) {
