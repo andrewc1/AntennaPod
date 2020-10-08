@@ -102,6 +102,7 @@ public class VideoplayerActivity extends MediaplayerActivity {
         if (!PictureInPictureUtil.isInPictureInPictureMode(this)) {
             videoControlsHider.stop();
         }
+        progressIndicator.setVisibility(View.GONE); // Controller released; we will not receive buffering updates
     }
 
     @Override
@@ -187,7 +188,7 @@ public class VideoplayerActivity extends MediaplayerActivity {
             videoControlsHider.stop();
 
             if (System.currentTimeMillis() - lastScreenTap < 300) {
-                if (event.getX() > v.getMeasuredWidth() / 2) {
+                if (event.getX() > v.getMeasuredWidth() / 2.0f) {
                     onFastForward();
                     showSkipAnimation(true);
                 } else {
