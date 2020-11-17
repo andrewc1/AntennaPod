@@ -294,6 +294,18 @@ public class QueueFragment extends Fragment implements Toolbar.OnMenuItemClickLi
             case R.id.queue_sort_duration_desc:
                 setSortOrder(SortOrder.DURATION_LONG_SHORT);
                 return true;
+            case R.id.queue_sort_size_asc:
+                setSortOrder(SortOrder.SIZE_SMALL_LARGE);
+                return true;
+            case R.id.queue_sort_size_desc:
+                setSortOrder(SortOrder.SIZE_LARGE_SMALL);
+                return true;
+            case R.id.queue_sort_density_asc:
+                setSortOrder(SortOrder.DENSITY_LOW_HIGH);
+                return true;
+            case R.id.queue_sort_density_desc:
+                setSortOrder(SortOrder.DENSITY_HIGH_LOW);
+                return true;
             case R.id.queue_sort_feed_title_asc:
                 setSortOrder(SortOrder.FEED_TITLE_A_Z);
                 return true;
