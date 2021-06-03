@@ -49,6 +49,18 @@ public class FeedItemPermutors {
             case DURATION_LONG_SHORT:
                 comparator = (f1, f2) -> Integer.compare(duration(f2), duration(f1));
                 break;
+            case SIZE_SMALL_LARGE:
+                comparator = (f1, f2) -> Long.compare(size(f1), size(f2));
+                break;
+            case SIZE_LARGE_SMALL:
+                comparator = (f1, f2) -> Long.compare(size(f2), size(f1));
+                break;
+            case DENSITY_LOW_HIGH:
+                comparator = (f1, f2) -> Long.compare(density(f1), density(f2));
+                break;
+            case DENSITY_HIGH_LOW:
+                comparator = (f1, f2) -> Long.compare(density(f2), density(f1));
+                break;
             case FEED_TITLE_A_Z:
                 comparator = (f1, f2) -> feedTitle(f1).compareTo(feedTitle(f2));
                 break;
@@ -90,6 +102,17 @@ public class FeedItemPermutors {
     private static int duration(@Nullable FeedItem item) {
         return (item != null && item.getMedia() != null) ?
                 item.getMedia().getDuration() : 0;
+    }
+
+    private static long size(@Nullable FeedItem item) {
+        return (item != null && item.getMedia() != null) ?
+                item.getMedia().getSize() : 0;
+    }
+
+    private static long density(@Nullable FeedItem item) {
+        return (item != null && item.getMedia() != null) ?
+                // use duration + 1 so we're not dividing by 0 if duration == 0
+                item.getMedia().getSize()/(item.getMedia().getDuration() + 1) : 1;
     }
 
     @NonNull

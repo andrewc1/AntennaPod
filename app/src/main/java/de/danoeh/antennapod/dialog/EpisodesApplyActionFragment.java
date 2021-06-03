@@ -231,6 +231,10 @@ public class EpisodesApplyActionFragment extends Fragment implements Toolbar.OnM
         map.put(R.id.sort_date_old_new, SortOrder.DATE_OLD_NEW);
         map.put(R.id.sort_duration_long_short, SortOrder.DURATION_LONG_SHORT);
         map.put(R.id.sort_duration_short_long, SortOrder.DURATION_SHORT_LONG);
+        map.put(R.id.sort_size_large_small, SortOrder.SIZE_LARGE_SMALL);
+        map.put(R.id.sort_size_small_large, SortOrder.SIZE_SMALL_LARGE);
+        map.put(R.id.sort_density_high_low, SortOrder.DENSITY_HIGH_LOW);
+        map.put(R.id.sort_density_low_high, SortOrder.DENSITY_LOW_HIGH);
         menuItemIdToSortOrder = Collections.unmodifiableMap(map);
     }
 
