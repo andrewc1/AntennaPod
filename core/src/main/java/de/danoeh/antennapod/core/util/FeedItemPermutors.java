@@ -110,9 +110,21 @@ public class FeedItemPermutors {
     }
 
     private static long density(@Nullable FeedItem item) {
-        return (item != null && item.getMedia() != null) ?
-                // use duration + 1 so we're not dividing by 0 if duration == 0
-                item.getMedia().getSize()/(item.getMedia().getDuration() + 1) : 1;
+        if(item != null && item.getMedia() != null) {
+	    long diskSize = item.getMedia().getSize();
+
+	    // If the item isn't downloaded, the size on disk is really 0
+	    if(!item.getMedia().isDownloaded()) {
+		diskSize = 0L;
+	    }
+
+            // use duration + 1 to calculate density so we're not
+	    // dividing by 0 if duration == 0
+            return diskSize/(item.getMedia().getDuration() + 1);
+	} else {
+	    // If it's null or getMedia() is null, density is minimum
+	    return -1;
+	}
     }
 
     @NonNull
