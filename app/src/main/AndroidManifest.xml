@@ -196,10 +196,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.OpmlFeedChooserActivity"
-            android:label="@string/opml_import_label">
-        </activity>
-        <activity
                 android:name=".activity.BugReportActivity"
                 android:label="@string/bug_report_title">
             <meta-data
@@ -301,6 +297,19 @@
                 <data android:host="subscribeonandroid.com" />
                 <data android:host="www.subscribeonandroid.com" />
                 <data android:host="*subscribeonandroid.com" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:host="antennapod.org" />
+                <data android:host="www.antennapod.org" />
+                <data android:pathPrefix="/deeplink/subscribe" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>

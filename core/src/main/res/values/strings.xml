@@ -105,13 +105,12 @@
     <string name="shownotes_label">Shownotes</string>
     <string name="shownotes_contentdescription">swipe up to read shownotes</string>
     <string name="episodes_suffix">\u0020episodes</string>
-    <string name="processing_label">Processing</string>
     <string name="close_label">Close</string>
     <string name="retry_label">Retry</string>
     <string name="auto_download_label">Include in auto downloads</string>
     <string name="auto_delete_label">Auto Delete Episode</string>
     <string name="feed_volume_reduction">Volume Reduction</string>
-    <string name="feed_volume_reduction_summary">Turn down volume for episodes of this feed: %1$s</string>
+    <string name="feed_volume_reduction_summary">Turn down volume for episodes of this podcast: %1$s</string>
     <string name="feed_volume_reduction_off">Off</string>
     <string name="feed_volume_reduction_light">Light</string>
     <string name="feed_volume_reduction_heavy">Heavy</string>
@@ -183,6 +182,7 @@
     <string name="open_podcast">Open Podcast</string>
     <string name="please_wait_for_data">Please wait until the data is loaded</string>
     <string name="updates_disabled_label">Updates disabled</string>
+    <string name="add_to_folder">Add to folder</string>
 
     <!-- actions on feeditems -->
     <string name="download_label">Download</string>
@@ -486,8 +486,6 @@
     <string name="enqueue_location_front">Front</string>
     <string name="enqueue_location_after_current">After current episode</string>
     <string name="pref_smart_mark_as_played_disabled">Disabled</string>
-    <string name="pref_image_cache_size_title">Image Cache Size</string>
-    <string name="pref_image_cache_size_sum">Size of the disk cache for images.</string>
     <string name="documentation_support">Documentation &amp; Support</string>
     <string name="visit_user_forum">User forum</string>
     <string name="bug_report_title">Report bug</string>
@@ -555,6 +553,7 @@
 
     <!-- Search -->
     <string name="search_status_no_results">No results were found</string>
+    <string name="type_to_search">Type a query to search</string>
     <string name="search_label">Search</string>
     <string name="no_results_for_query">No results were found for \"%1$s\"</string>
 
@@ -788,9 +787,6 @@
     <!-- Audio controls -->
     <string name="audio_controls">Audio controls</string>
     <string name="playback_speed">Playback Speed</string>
-    <string name="volume">Volume</string>
-    <string name="left_short">L</string>
-    <string name="right_short">R</string>
     <string name="audio_effects">Audio Effects</string>
     <string name="stereo_to_mono">Downmix: Stereo to mono</string>
     <string name="sonic_only">Sonic only</string>
