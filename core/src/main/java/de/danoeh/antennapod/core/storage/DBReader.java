@@ -575,7 +575,6 @@ public final class DBReader {
     @Nullable
     private static FeedItem getFeedItemByGuidOrEpisodeUrl(final String guid, final String episodeUrl,
             PodDBAdapter adapter) {
-        Log.d(TAG, "Loading feeditem with guid " + guid + " or episode url " + episodeUrl);
         try (Cursor cursor = adapter.getFeedItemCursor(guid, episodeUrl)) {
             if (!cursor.moveToNext()) {
                 return null;
@@ -633,8 +632,6 @@ public final class DBReader {
      *          Does NOT load additional attributes like feed or queue state.
      */
     public static FeedItem getFeedItemByGuidOrEpisodeUrl(final String guid, final String episodeUrl) {
-        Log.d(TAG, "getFeedItem() called with: " + "guid = [" + guid + "], episodeUrl = [" + episodeUrl + "]");
-
         PodDBAdapter adapter = PodDBAdapter.getInstance();
         adapter.open();
         try {
@@ -881,7 +878,7 @@ public final class DBReader {
         int numDownloadedItems = adapter.getNumberOfDownloadedEpisodes();
 
         List<NavDrawerData.DrawerItem> items = new ArrayList<>();
-        Map<String, NavDrawerData.FolderDrawerItem> folders = new HashMap<>();
+        Map<String, NavDrawerData.TagDrawerItem> folders = new HashMap<>();
         for (Feed feed : feeds) {
             for (String tag : feed.getPreferences().getTags()) {
                 NavDrawerData.FeedDrawerItem drawerItem = new NavDrawerData.FeedDrawerItem(feed, feed.getId(),
@@ -890,18 +887,18 @@ public final class DBReader {
                     items.add(drawerItem);
                     continue;
                 }
-                NavDrawerData.FolderDrawerItem folder;
+                NavDrawerData.TagDrawerItem folder;
                 if (folders.containsKey(tag)) {
                     folder = folders.get(tag);
                 } else {
-                    folder = new NavDrawerData.FolderDrawerItem(tag);
+                    folder = new NavDrawerData.TagDrawerItem(tag);
                     folders.put(tag, folder);
                 }
                 drawerItem.id |= folder.id;
                 folder.children.add(drawerItem);
             }
         }
-        List<NavDrawerData.FolderDrawerItem> foldersSorted = new ArrayList<>(folders.values());
+        List<NavDrawerData.TagDrawerItem> foldersSorted = new ArrayList<>(folders.values());
         Collections.sort(foldersSorted, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
         items.addAll(foldersSorted);
 

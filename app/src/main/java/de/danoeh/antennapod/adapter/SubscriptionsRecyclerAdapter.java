@@ -133,6 +133,7 @@ public class SubscriptionsRecyclerAdapter extends SelectableAdapter<Subscription
             MenuInflater inflater = mainActivityRef.get().getMenuInflater();
             inflater.inflate(R.menu.nav_feed_context, menu);
             menu.setHeaderTitle(selectedFeed.getTitle());
+            menu.findItem(R.id.multi_select).setVisible(true);
         }
     }
 
@@ -213,7 +214,7 @@ public class SubscriptionsRecyclerAdapter extends SelectableAdapter<Subscription
                         .load();
             } else {
                 new CoverLoader(mainActivityRef.get())
-                        .withResource(R.drawable.ic_folder)
+                        .withResource(R.drawable.ic_tag)
                         .withPlaceholderView(feedTitle, true)
                         .withCoverView(imageView)
                         .load();

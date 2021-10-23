@@ -167,6 +167,7 @@ public class SubscriptionFragment extends Fragment
         });
 
         speedDialView = root.findViewById(R.id.fabSD);
+        speedDialView.setOverlayLayout(root.findViewById(R.id.fabSDOverlay));
         speedDialView.inflate(R.menu.nav_feed_action_speeddial);
         speedDialView.setOnChangeListener(new SpeedDialView.OnChangeListener() {
             @Override
@@ -249,8 +250,8 @@ public class SubscriptionFragment extends Fragment
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View v, Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
         subscriptionAdapter = new SubscriptionsRecyclerAdapter((MainActivity) getActivity());
         subscriptionAdapter.setOnSelectModeListener(this);
         subscriptionRecycler.setAdapter(subscriptionAdapter);
@@ -292,9 +293,9 @@ public class SubscriptionFragment extends Fragment
                     NavDrawerData data = DBReader.getNavDrawerData();
                     List<NavDrawerData.DrawerItem> items = data.items;
                     for (NavDrawerData.DrawerItem item : items) {
-                        if (item.type == NavDrawerData.DrawerItem.Type.FOLDER
+                        if (item.type == NavDrawerData.DrawerItem.Type.TAG
                                 && item.getTitle().equals(displayedFolder)) {
-                            return ((NavDrawerData.FolderDrawerItem) item).children;
+                            return ((NavDrawerData.TagDrawerItem) item).children;
                         }
                     }
                     return items;
@@ -303,6 +304,10 @@ public class SubscriptionFragment extends Fragment
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     result -> {
+                        if (listItems != null && listItems.size() > result.size()) {
+                            // We have fewer items. This can result in items being selected that are no longer visible.
+                            subscriptionAdapter.endSelectMode();
+                        }
                         listItems = result;
                         subscriptionAdapter.setItems(result);
                         subscriptionAdapter.notifyDataSetChanged();
@@ -339,7 +344,7 @@ public class SubscriptionFragment extends Fragment
                     R.string.remove_all_new_flags_confirmation_msg,
                     () -> DBWriter.removeFeedNewFlag(feed.getId()));
             return true;
-        } else if (itemId == R.id.add_to_folder) {
+        } else if (itemId == R.id.edit_tags) {
             TagSettingsDialog.newInstance(feed.getPreferences()).show(getChildFragmentManager(), TagSettingsDialog.TAG);
             return true;
         } else if (itemId == R.id.rename_item) {

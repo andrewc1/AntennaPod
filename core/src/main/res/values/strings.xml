@@ -188,6 +188,7 @@
         <item quantity="other">%d subscriptions updated.</item>
     </plurals>
     <string name="add_to_folder">Add to folder</string>
+    <string name="confirm_mobile_feed_refresh_dialog_message">Downloading episodes over mobile data connection is disabled in the settings.\n\nDo you still want to refresh all podcasts over mobile data?</string>
 
     <!-- actions on feeditems -->
     <string name="download_label">Download</string>
@@ -358,7 +359,7 @@
     <string name="storage_sum">Episode auto delete, Import, Export</string>
     <string name="project_pref">Project</string>
     <string name="synchronization_pref">Synchronization</string>
-    <string name="synchronization_sum">Synchronize with other devices using gpodder.net</string>
+    <string name="synchronization_sum">Synchronize with other devices</string>
     <string name="automation">Automation</string>
     <string name="download_pref_details">Details</string>
     <string name="import_export_pref">Import/Export</string>
@@ -449,17 +450,20 @@
     <string name="pref_theme_title_dark">Dark</string>
     <string name="pref_theme_title_trueblack">Black (AMOLED ready)</string>
     <string name="pref_episode_cache_unlimited">Unlimited</string>
-    <string name="pref_gpodnet_authenticate_title">Login</string>
-    <string name="pref_gpodnet_authenticate_sum">Login with your gpodder.net account in order to sync your subscriptions.</string>
-    <string name="pref_gpodnet_logout_title">Logout</string>
-    <string name="pref_gpodnet_logout_toast">Logout was successful</string>
+    <string name="synchronization_logout">Logout</string>
+    <string name="pref_synchronization_logout_toast">Logout was successful</string>
     <string name="pref_gpodnet_setlogin_information_title">Change login information</string>
     <string name="pref_gpodnet_setlogin_information_sum">Change the login information for your gpodder.net account.</string>
-    <string name="pref_gpodnet_sync_changes_title">Synchronize now</string>
-    <string name="pref_gpodnet_sync_changes_sum">Sync subscription and episode state changes with gpodder.net.</string>
-    <string name="pref_gpodnet_full_sync_title">Force full synchronization</string>
-    <string name="pref_gpodnet_full_sync_sum">Sync all subscriptions and episode states with gpodder.net.</string>
-    <string name="pref_gpodnet_login_status"><![CDATA[Logged in as <i>%1$s</i> with device <i>%2$s</i>]]></string>
+    <string name="synchronization_sync_changes_title">Synchronize now</string>
+    <string name="synchronization_full_sync_title">Force full synchronization</string>
+    <string name="synchronization_login_status"><![CDATA[Logged in as <i>%1$s</i> on <i>%2$s</i>. <br/><br/>You can choose your synchronization provider again once you have logged out]]></string>
+    <string name="synchronization_summary_unchoosen">You can choose from multiple providers to synchronize your subscriptions and episode play state with</string>
+    <string name="synchronization_summary_nextcloud">Gpoddersync is an open-source Nextcloud app that you can easily install on your own server. The app is independent of the AntennaPod project.</string>
+    <string name="synchronization_nextcloud_authenticate_browser">Grant access using the opened web browser and come back to AntennaPod.</string>
+    <string name="synchronization_choose_title">Choose synchronization provider</string>
+    <string name="synchronization_force_sync_summary">Re-synchronize all subscriptions and episode states</string>
+    <string name="synchronization_sync_summary">Synchronize subscription and episode state changes</string>
+    <string name="dialog_choose_sync_service_title">Choose synchronization provider</string>
     <string name="pref_playback_speed_sum">Customize the speeds available for variable speed playback</string>
     <string name="pref_feed_playback_speed_sum">The speed to use when starting audio playback for episodes in this podcast</string>
     <string name="pref_feed_skip">Auto Skip</string>
@@ -567,6 +571,7 @@
     <string name="sync_status_episodes_download">Downloading episode changes…</string>
     <string name="sync_status_upload_played">Uploading played status…</string>
     <string name="sync_status_subscriptions">Synchronizing subscriptions…</string>
+    <string name="sync_status_wait_for_downloads">Waiting for downloads to complete…</string>
     <string name="sync_status_success">Synchronization successful</string>
     <string name="sync_status_error">Synchronization failed</string>
 
@@ -691,8 +696,8 @@
     <!-- Feed settings/information screen -->
     <string name="authentication_label">Authentication</string>
     <string name="authentication_descr">Change your username and password for this podcast and its episodes.</string>
-    <string name="feed_folders_label">Folders</string>
-    <string name="feed_folders_summary">Change the folders in which this podcast is displayed.</string>
+    <string name="feed_tags_label">Tags</string>
+    <string name="feed_tags_summary">Change the tags of this podcast to help organize your subscriptions</string>
     <string name="feed_folders_include_root">Show in main list</string>
     <string name="auto_download_settings_label">Auto Download Settings</string>
     <string name="episode_filters_label">Episode Filter</string>
