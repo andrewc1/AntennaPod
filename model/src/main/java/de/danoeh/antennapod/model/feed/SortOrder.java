@@ -18,6 +18,9 @@ public enum SortOrder {
     EPISODE_TITLE_Z_A(4, INTRA_FEED),
     DURATION_SHORT_LONG(5, INTRA_FEED),
     DURATION_LONG_SHORT(6, INTRA_FEED),
+=======
+    EPISODE_FILENAME_A_Z(7, INTRA_FEED),
+    EPISODE_FILENAME_Z_A(8, INTRA_FEED),
     SIZE_SMALL_LARGE(7, INTRA_FEED),
     SIZE_LARGE_SMALL(8, INTRA_FEED),
     DENSITY_HIGH_LOW(9, INTRA_FEED),
@@ -71,5 +74,13 @@ public enum SortOrder {
     @Nullable
     public static String toCodeString(@Nullable SortOrder sortOrder) {
         return sortOrder != null ? Integer.toString(sortOrder.code) : null;
+    }
+
+    public static SortOrder[] valuesOf(String[] stringValues) {
+        SortOrder[] values = new SortOrder[stringValues.length];
+        for (int i = 0; i < stringValues.length; i++) {
+            values[i] = SortOrder.valueOf(stringValues[i]);
+        }
+        return values;
     }
 }

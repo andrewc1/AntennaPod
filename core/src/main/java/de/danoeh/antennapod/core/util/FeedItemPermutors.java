@@ -50,6 +50,11 @@ public class FeedItemPermutors {
             case DURATION_LONG_SHORT:
                 comparator = (f1, f2) -> Integer.compare(duration(f2), duration(f1));
                 break;
+            case EPISODE_FILENAME_A_Z:
+                comparator = (f1, f2) -> itemLink(f1).compareTo(itemLink(f2));
+                break;
+            case EPISODE_FILENAME_Z_A:
+                comparator = (f1, f2) -> itemLink(f2).compareTo(itemLink(f1));
             case SIZE_SMALL_LARGE:
                 comparator = (f1, f2) -> Long.compare(size(f1), size(f2));
                 break;
@@ -123,6 +128,12 @@ public class FeedItemPermutors {
 	    // If it's null or getMedia() is null, density is minimum
 	    return -1;
 	}
+    }
+
+    @NonNull
+    private static String itemLink(@Nullable FeedItem item) {
+        return (item != null && item.getLink() != null)
+                ? item.getLink().toLowerCase(Locale.getDefault()) : "";
     }
 
     @NonNull

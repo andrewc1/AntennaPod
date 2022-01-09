@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +48,6 @@ import de.danoeh.antennapod.core.preferences.UserPreferences;
 import de.danoeh.antennapod.core.service.download.DownloadService;
 import de.danoeh.antennapod.core.storage.DBReader;
 import de.danoeh.antennapod.core.storage.DBWriter;
-import de.danoeh.antennapod.core.storage.DownloadRequester;
 import de.danoeh.antennapod.core.util.Converter;
 import de.danoeh.antennapod.core.util.FeedItemUtil;
 import de.danoeh.antennapod.model.feed.FeedItemFilter;
@@ -234,6 +234,23 @@ public class QueueFragment extends Fragment implements Toolbar.OnMenuItemClickLi
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onKeyUp(KeyEvent event) {
+        if (!isAdded() || !isVisible() || !isMenuVisible()) {
+            return;
+        }
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_T:
+                recyclerView.smoothScrollToPosition(0);
+                break;
+            case KeyEvent.KEYCODE_B:
+                recyclerView.smoothScrollToPosition(recyclerAdapter.getItemCount() - 1);
+                break;
+            default:
+                break;
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -244,7 +261,7 @@ public class QueueFragment extends Fragment implements Toolbar.OnMenuItemClickLi
     }
 
     private final MenuItemUtils.UpdateRefreshMenuItemChecker updateRefreshMenuItemChecker =
-            () -> DownloadService.isRunning && DownloadRequester.getInstance().isDownloadingFeeds();
+            () -> DownloadService.isRunning && DownloadService.isDownloadingFeeds();
 
     private void refreshToolbarState() {
         boolean keepSorted = UserPreferences.isQueueKeepSorted();
