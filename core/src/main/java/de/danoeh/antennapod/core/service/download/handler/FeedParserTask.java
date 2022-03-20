@@ -1,16 +1,17 @@
 package de.danoeh.antennapod.core.service.download.handler;
 
+import android.text.TextUtils;
 import android.util.Log;
 import de.danoeh.antennapod.model.feed.Feed;
 import de.danoeh.antennapod.model.feed.FeedItem;
 import de.danoeh.antennapod.model.feed.FeedPreferences;
 import de.danoeh.antennapod.model.feed.VolumeAdaptionSetting;
 import de.danoeh.antennapod.core.service.download.DownloadRequest;
-import de.danoeh.antennapod.core.service.download.DownloadStatus;
+import de.danoeh.antennapod.model.download.DownloadStatus;
 import de.danoeh.antennapod.parser.feed.FeedHandler;
 import de.danoeh.antennapod.parser.feed.FeedHandlerResult;
 import de.danoeh.antennapod.parser.feed.UnsupportedFeedtypeException;
-import de.danoeh.antennapod.core.util.DownloadError;
+import de.danoeh.antennapod.model.download.DownloadError;
 import de.danoeh.antennapod.core.util.InvalidFeedException;
 import org.xml.sax.SAXException;
 
@@ -48,6 +49,9 @@ public class FeedParserTask implements Callable<FeedHandlerResult> {
             result = feedHandler.parseFeed(feed);
             Log.d(TAG, feed.getTitle() + " parsed");
             checkFeedData(feed);
+            if (TextUtils.isEmpty(feed.getImageUrl())) {
+                feed.setImageUrl(Feed.PREFIX_GENERATIVE_COVER + feed.getDownload_url());
+            }
         } catch (SAXException | IOException | ParserConfigurationException e) {
             successful = false;
             e.printStackTrace();
@@ -80,8 +84,8 @@ public class FeedParserTask implements Callable<FeedHandlerResult> {
                                                 successful, reasonDetailed, request.isInitiatedByUser());
             return result;
         } else {
-            downloadStatus = new DownloadStatus(feed, feed.getTitle(), reason, successful,
-                                                reasonDetailed, request.isInitiatedByUser());
+            downloadStatus = new DownloadStatus(feed, feed.getHumanReadableIdentifier(), reason,
+                                                successful, reasonDetailed, request.isInitiatedByUser());
             return null;
         }
     }

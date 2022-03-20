@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import de.danoeh.antennapod.core.util.NetworkUtils;
+import de.danoeh.antennapod.model.download.DownloadStatus;
 import okhttp3.CacheControl;
 import org.apache.commons.io.IOUtils;
 
@@ -24,7 +25,7 @@ import java.util.Date;
 import de.danoeh.antennapod.core.R;
 import de.danoeh.antennapod.model.feed.FeedMedia;
 import de.danoeh.antennapod.parser.feed.util.DateUtils;
-import de.danoeh.antennapod.core.util.DownloadError;
+import de.danoeh.antennapod.model.download.DownloadError;
 import de.danoeh.antennapod.core.util.StorageUtils;
 import de.danoeh.antennapod.core.util.URIUtil;
 import okhttp3.OkHttpClient;
@@ -160,6 +161,7 @@ public class HttpDownloader extends Downloader {
                     try {
                         contentLength = Integer.parseInt(contentLen);
                     } catch (NumberFormatException e) {
+                        e.printStackTrace();
                     }
                 }
                 Log.d(TAG, "content length: " + contentLength);
