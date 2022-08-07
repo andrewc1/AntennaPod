@@ -457,6 +457,11 @@ public class QueueFragment extends Fragment implements Toolbar.OnMenuItemClickLi
         View root = inflater.inflate(R.layout.queue_fragment, container, false);
         toolbar = root.findViewById(R.id.toolbar);
         toolbar.setOnMenuItemClickListener(this);
+        toolbar.setOnLongClickListener(v -> {
+            recyclerView.scrollToPosition(5);
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+            return false;
+        });
         displayUpArrow = getParentFragmentManager().getBackStackEntryCount() != 0;
         if (savedInstanceState != null) {
             displayUpArrow = savedInstanceState.getBoolean(KEY_UP_ARROW);
@@ -488,7 +493,7 @@ public class QueueFragment extends Fragment implements Toolbar.OnMenuItemClickLi
 
         emptyView = new EmptyViewHandler(getContext());
         emptyView.attachToRecyclerView(recyclerView);
-        emptyView.setIcon(R.drawable.ic_playlist);
+        emptyView.setIcon(R.drawable.ic_playlist_play);
         emptyView.setTitle(R.string.no_items_header_label);
         emptyView.setMessage(R.string.no_items_label);
 

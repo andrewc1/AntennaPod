@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.joanzapata.iconify.Iconify;
-import com.joanzapata.iconify.widget.IconTextView;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.PreferenceActivity;
 import de.danoeh.antennapod.fragment.CompletedDownloadsFragment;
@@ -114,7 +113,7 @@ public class NavListAdapter extends RecyclerView.Adapter<NavListAdapter.Holder>
     private @DrawableRes int getDrawable(String tag) {
         switch (tag) {
             case QueueFragment.TAG:
-                return R.drawable.ic_playlist;
+                return R.drawable.ic_playlist_play;
             case InboxFragment.TAG:
                 return R.drawable.ic_inbox;
             case EpisodesFragment.TAG:
@@ -237,6 +236,7 @@ public class NavListAdapter extends RecyclerView.Adapter<NavListAdapter.Holder>
         // reset for re-use
         holder.count.setVisibility(View.GONE);
         holder.count.setOnClickListener(null);
+        holder.count.setClickable(false);
 
         String tag = fragmentTags.get(position);
         if (tag.equals(QueueFragment.TAG)) {
@@ -387,7 +387,7 @@ public class NavListAdapter extends RecyclerView.Adapter<NavListAdapter.Holder>
     static class FeedHolder extends Holder {
         final ImageView image;
         final TextView title;
-        final IconTextView failure;
+        final ImageView failure;
         final TextView count;
 
         public FeedHolder(@NonNull View itemView) {
