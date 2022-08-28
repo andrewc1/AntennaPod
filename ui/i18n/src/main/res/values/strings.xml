@@ -10,8 +10,8 @@
     <string name="statistics_label">Statistics</string>
     <string name="add_feed_label">Add Podcast</string>
     <string name="episodes_label">Episodes</string>
+    <string name="home_label">Home</string>
     <string name="queue_label">Queue</string>
-    <string name="all_episodes_short_label">All</string>
     <string name="inbox_label">Inbox</string>
     <string name="favorite_episodes_label">Favorites</string>
     <string name="settings_label">Settings</string>
@@ -50,6 +50,17 @@
     <string name="statistics_reset_data_msg">This will erase the history of duration played for all episodes. Are you sure you want to proceed?</string>
     <string name="statistics_counting_range">Played between %1$s and %2$s</string>
     <string name="statistics_counting_total">Played in total</string>
+
+    <!-- Home fragment -->
+    <string name="home_surprise_title">Get surprised</string>
+    <string name="home_classics_title">Check your classics</string>
+    <string name="home_continue_title">Continue listening</string>
+    <string name="home_new_title">Review the new</string>
+    <string name="home_downloads_title">Manage downloads</string>
+    <string name="home_welcome_title">Welcome to AntennaPod!</string>
+    <string name="home_welcome_text">You are not subscribed to any podcasts yet. Open the side menu to add a podcast.</string>
+    <string name="navigate_arrows">%s »</string>
+    <string name="configure_home">Configure Home Screen</string>
 
     <!-- Download Statistics fragment -->
     <string name="total_size_downloaded_podcasts">Total size of episodes on the device</string>
@@ -233,7 +244,6 @@
     <string name="visit_website_label">Visit Website</string>
     <string name="skip_episode_label">Skip episode</string>
     <string name="reset_position">Reset Playback Position</string>
-    <string name="removed_item">Item removed</string>
     <string name="no_items_selected">No items selected</string>
 
     <!-- Download messages and labels -->
@@ -341,10 +351,9 @@
     <string name="no_history_label">After you listen to an episode, it will appear here.</string>
     <string name="no_all_episodes_head_label">No Episodes</string>
     <string name="no_all_episodes_label">When you add a podcast, the episodes will be shown here.</string>
+    <string name="no_all_episodes_filtered_label">Try clearing the filter to see more episodes.</string>
     <string name="no_inbox_head_label">No episodes in the inbox</string>
     <string name="no_inbox_label">When new episodes arrive, they will be shown here. You can then decide if you are interested in them or not.</string>
-    <string name="no_fav_episodes_head_label">No favorite episodes</string>
-    <string name="no_fav_episodes_label">You can add episodes to the favorites by long-pressing them.</string>
     <string name="no_subscriptions_head_label">No subscriptions</string>
     <string name="no_subscriptions_label">To subscribe to a podcast, press the plus icon below.</string>
 
