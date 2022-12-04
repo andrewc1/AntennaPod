@@ -20,6 +20,7 @@ import de.danoeh.antennapod.core.menuhandler.MenuItemUtils;
 import de.danoeh.antennapod.core.storage.DBReader;
 import de.danoeh.antennapod.core.util.FeedItemUtil;
 import de.danoeh.antennapod.event.FeedItemEvent;
+import de.danoeh.antennapod.event.FeedListUpdateEvent;
 import de.danoeh.antennapod.event.UnreadItemsUpdateEvent;
 import de.danoeh.antennapod.fragment.InboxFragment;
 import de.danoeh.antennapod.fragment.swipeactions.SwipeActions;
@@ -65,9 +66,13 @@ public class InboxSection extends HomeSection {
         SwipeActions swipeActions = new SwipeActions(this, InboxFragment.TAG);
         swipeActions.attachTo(viewBinding.recyclerView);
         swipeActions.setFilter(new FeedItemFilter(FeedItemFilter.NEW));
-
-        loadItems();
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        loadItems();
     }
 
     @Override
@@ -82,6 +87,11 @@ public class InboxSection extends HomeSection {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(FeedItemEvent event) {
+        loadItems();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onFeedListChanged(FeedListUpdateEvent event) {
         loadItems();
     }
 
