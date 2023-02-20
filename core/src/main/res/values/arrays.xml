@@ -135,20 +135,6 @@
         <item>-2</item>
     </string-array>
 
-    <string-array name="theme_options">
-        <item>@string/pref_theme_title_use_system</item>
-        <item>@string/pref_theme_title_light</item>
-        <item>@string/pref_theme_title_dark</item>
-        <item>@string/pref_theme_title_trueblack</item>
-    </string-array>
-
-    <string-array name="theme_values">
-        <item>system</item>
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
     <string-array name="nav_drawer_titles">
         <item>@string/home_label</item>
         <item>@string/queue_label</item>
@@ -255,6 +241,10 @@
         <item>EPISODE_TITLE_Z_A</item>
         <item>DURATION_SHORT_LONG</item>
         <item>DURATION_LONG_SHORT</item>
+        <item>SIZE_SMALL_LARGE</item>
+        <item>SIZE_LARGE_SMALL</item>
+        <item>DENSITY_LOW_HIGH</item>
+        <item>DENSITY_HIGH_LOW</item>
         <item>EPISODE_FILENAME_A_Z</item>
         <item>EPISODE_FILENAME_Z_A</item>
     </string-array>

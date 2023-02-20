@@ -48,6 +48,7 @@ public class UserPreferences {
 
     // User Interface
     public static final String PREF_THEME = "prefTheme";
+    public static final String PREF_THEME_BLACK = "prefThemeBlack";
     public static final String PREF_TINTED_COLORS = "prefTintedColors";
     public static final String PREF_HIDDEN_DRAWER_ITEMS = "prefHiddenDrawerItems";
     public static final String PREF_DRAWER_FEED_ORDER = "prefDrawerFeedOrder";
@@ -66,6 +67,7 @@ public class UserPreferences {
 
     public static final String PREF_QUEUE_KEEP_SORTED = "prefQueueKeepSorted";
     public static final String PREF_QUEUE_KEEP_SORTED_ORDER = "prefQueueKeepSortedOrder";
+    private static final String PREF_DOWNLOADS_SORTED_ORDER = "prefDownloadSortedOrder";
 
     // Playback
     public static final String PREF_PAUSE_ON_HEADSET_DISCONNECT = "prefPauseOnHeadsetDisconnect";
@@ -158,17 +160,33 @@ public class UserPreferences {
         LIGHT, DARK, BLACK, SYSTEM
     }
 
+    public static void setTheme(ThemePreference theme) {
+        switch (theme) {
+            case LIGHT:
+                prefs.edit().putString(PREF_THEME, "0").apply();
+                break;
+            case DARK:
+                prefs.edit().putString(PREF_THEME, "1").apply();
+                break;
+            default:
+                prefs.edit().putString(PREF_THEME, "system").apply();
+                break;
+        }
+    }
+
     public static ThemePreference getTheme() {
         switch (prefs.getString(PREF_THEME, "system")) {
             case "0":
                 return ThemePreference.LIGHT;
             case "1":
                 return ThemePreference.DARK;
-            case "2":
-                return ThemePreference.BLACK;
             default:
                 return ThemePreference.SYSTEM;
         }
+    }
+
+    public static boolean getIsBlackTheme() {
+        return prefs.getBoolean(PREF_THEME_BLACK, false);
     }
 
     public static boolean getIsThemeColorTinted() {
@@ -924,6 +942,24 @@ public class UserPreferences {
         prefs.edit()
                 .putString(PREF_QUEUE_KEEP_SORTED_ORDER, sortOrder.name())
                 .apply();
+    }
+
+    /**
+     * Returns the sort order for the downloads.
+     */
+    public static SortOrder getDownloadsSortedOrder() {
+        String sortOrderStr = prefs.getString(PREF_DOWNLOADS_SORTED_ORDER, "" + SortOrder.DATE_NEW_OLD.code);
+        return SortOrder.fromCodeString(sortOrderStr);
+    }
+
+    /**
+     * Sets the sort order for the downloads.
+     */
+    public static void setDownloadsSortedOrder(SortOrder sortOrder) {
+        if (sortOrder == null) {
+            return;
+        }
+        prefs.edit().putString(PREF_DOWNLOADS_SORTED_ORDER, "" + sortOrder.code).apply();
     }
 
     public static SubscriptionsFilter getSubscriptionsFilter() {
