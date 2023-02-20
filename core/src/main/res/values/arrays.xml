@@ -241,10 +241,6 @@
         <item>EPISODE_TITLE_Z_A</item>
         <item>DURATION_SHORT_LONG</item>
         <item>DURATION_LONG_SHORT</item>
-        <item>SIZE_SMALL_LARGE</item>
-        <item>SIZE_LARGE_SMALL</item>
-        <item>DENSITY_LOW_HIGH</item>
-        <item>DENSITY_HIGH_LOW</item>
         <item>EPISODE_FILENAME_A_Z</item>
         <item>EPISODE_FILENAME_Z_A</item>
     </string-array>
