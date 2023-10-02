@@ -124,11 +124,14 @@
     <string name="retry_label">Retry</string>
     <string name="auto_download_label">Include in auto downloads</string>
     <string name="auto_delete_label">Auto delete episode</string>
-    <string name="feed_volume_reduction">Volume reduction</string>
-    <string name="feed_volume_reduction_summary">Turn down volume for episodes of this podcast: %1$s</string>
-    <string name="feed_volume_reduction_off">Off</string>
-    <string name="feed_volume_reduction_light">Light</string>
-    <string name="feed_volume_reduction_heavy">Heavy</string>
+    <string name="feed_volume_adapdation">Volume adaptation</string>
+    <string name="feed_volume_adaptation_summary">Turn volume for episodes of this podcast up or down: %1$s</string>
+    <string name="feed_volume_reduction_off">No adaption</string>
+    <string name="feed_volume_reduction_light">Light reduction</string>
+    <string name="feed_volume_reduction_heavy">Heavy reduction</string>
+    <string name="feed_volume_boost_light">Light boost</string>
+    <string name="feed_volume_boost_medium">Medium boost</string>
+    <string name="feed_volume_boost_heavy">Heavy boost</string>
     <string name="feed_auto_download_always">Always</string>
     <string name="feed_auto_download_never">Never</string>
     <string name="feed_new_episodes_action_add_to_inbox">Add to inbox</string>
@@ -336,12 +339,12 @@
     <string name="keep_sorted">Keep sorted</string>
     <string name="date">Date</string>
     <string name="duration">Duration</string>
-    <string name="size">Size</string>
     <string name="density">Density</string>
     <string name="episode_title">Episode title</string>
     <string name="feed_title">Podcast title</string>
     <string name="random">Random</string>
     <string name="smart_shuffle">Smart shuffle</string>
+    <string name="size">Size</string>
     <string name="clear_queue_confirmation_msg">Please confirm that you want to clear the queue of ALL of the episodes in it</string>
     <string name="time_left_label">Time left:\u0020</string>
 
@@ -612,7 +615,7 @@
     </plurals>
     <string name="auto_enable_label">Automatically activate the sleep timer when pressing play</string>
     <string name="auto_enable_label_with_times">Automatically activate the sleep timer when pressing play between %s and %s</string>
-    <string name="auto_enable_change_times">Change times</string>
+    <string name="auto_enable_change_times">Change time range</string>
     <string name="sleep_timer_enabled_label">Sleep timer enabled</string>
 
     <!-- Synchronisation -->
@@ -763,10 +766,6 @@
     <string name="sort_duration_long_short">Duration (Long \u2192 Short)</string>
     <string name="sort_filename_a_z">File Name (A \u2192 Z)</string>
     <string name="sort_filename_z_a">File Name (Z \u2192 A)</string>
-    <string name="sort_size_small_large">Size (Small \u2192 Large)</string>
-    <string name="sort_size_large_small">Size (Large \u2192 Small)</string>
-    <string name="sort_density_low_high">Density (Low \u2192 High)</string>
-    <string name="sort_density_high_low">Density (High \u2192 Low)</string>
 
     <string name="sort_a_z">A \u2192 Z</string>
     <string name="sort_z_a">Z \u2192 A</string>
@@ -778,7 +777,8 @@
     <string name="sort_large_small">Large \u2192 Small</string>
     <string name="sort_low_high">Low \u2192 High</string>
     <string name="sort_high_low">High \u2192 Low</string>
-
+    <string name="sort_density_low_high">Density (Low \u2192 High)</string>
+    <string name="sort_density_high_low">Density (High \u2192 Low)</string>
 
     <!-- Share episode dialog -->
     <string name="share_playback_position_dialog_label">Include playback position</string>
@@ -823,8 +823,6 @@
     <string name="notification_channel_download_error_description">Shown when download or feed update fails.</string>
     <string name="notification_channel_sync_error">Synchronization failed</string>
     <string name="notification_channel_sync_error_description">Shown when gpodder synchronization fails.</string>
-    <string name="notification_channel_auto_download">Automatic download completed</string>
-    <string name="notification_channel_episode_auto_download">Shown when episodes have been automatically downloaded.</string>
     <string name="notification_channel_new_episode">New episode</string>
     <string name="notification_channel_new_episode_description">Shown when a new episode of a podcast was found, where notifications are enabled</string>
 

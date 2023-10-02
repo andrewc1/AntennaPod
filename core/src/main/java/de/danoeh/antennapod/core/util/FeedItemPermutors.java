@@ -56,11 +56,6 @@ public class FeedItemPermutors {
                 break;
             case EPISODE_FILENAME_Z_A:
                 comparator = (f1, f2) -> itemLink(f2).compareTo(itemLink(f1));
-            case SIZE_SMALL_LARGE:
-                comparator = (f1, f2) -> Long.compare(size(f1), size(f2));
-                break;
-            case SIZE_LARGE_SMALL:
-                comparator = (f1, f2) -> Long.compare(size(f2), size(f1));
                 break;
             case DENSITY_LOW_HIGH:
                 comparator = (f1, f2) -> Long.compare(density(f1), density(f2));
@@ -82,6 +77,12 @@ public class FeedItemPermutors {
                 break;
             case SMART_SHUFFLE_NEW_OLD:
                 permutor = (queue) -> smartShuffle(queue, false);
+                break;
+            case SIZE_SMALL_LARGE:
+                comparator = (f1, f2) -> Long.compare(size(f1), size(f2));
+                break;
+            case SIZE_LARGE_SMALL:
+                comparator = (f1, f2) -> Long.compare(size(f2), size(f1));
                 break;
         }
 
@@ -109,8 +110,7 @@ public class FeedItemPermutors {
     }
 
     private static long size(@Nullable FeedItem item) {
-        return (item != null && item.getMedia() != null) ?
-                item.getMedia().getSize() : 0;
+        return (item != null && item.getMedia() != null) ? item.getMedia().getSize() : 0;
     }
 
     private static long density(@Nullable FeedItem item) {
