@@ -562,6 +562,12 @@ public class PlaybackService extends MediaBrowserServiceCompat {
 
     @SuppressLint("LaunchActivityFromNotification")
     private void displayStreamingNotAllowedNotification(Intent originalIntent) {
+        if (EventBus.getDefault().hasSubscriberForEvent(MessageEvent.class)) {
+            EventBus.getDefault().post(new MessageEvent(
+                    getString(R.string.confirm_mobile_streaming_notification_message)));
+            return;
+        }
+
         Intent intentAllowThisTime = new Intent(originalIntent);
         intentAllowThisTime.setAction(PlaybackServiceInterface.EXTRA_ALLOW_STREAM_THIS_TIME);
         intentAllowThisTime.putExtra(PlaybackServiceInterface.EXTRA_ALLOW_STREAM_THIS_TIME, true);
@@ -793,6 +799,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
                     updateNotificationAndMediaSession(newInfo.playable);
                     break;
                 case PREPARED:
+                    if (mediaPlayer.getPSMPInfo().playable != null) {
+                        PlaybackPreferences.writeMediaPlaying(mediaPlayer.getPSMPInfo().playable,
+                                mediaPlayer.getPSMPInfo().playerStatus);
+                    }
                     taskManager.startChapterLoader(newInfo.playable);
                     break;
                 case PAUSED:
@@ -1768,7 +1778,7 @@ public class PlaybackService extends MediaBrowserServiceCompat {
         public void onPause() {
             Log.d(TAG, "onPause()");
             if (getStatus() == PlayerStatus.PLAYING) {
-                pause(!UserPreferences.isPersistNotify(), true);
+                pause(!UserPreferences.isPersistNotify(), false);
             }
         }
 
