@@ -109,26 +109,38 @@ public class FeedItemPermutors {
         return (item != null && item.getMedia() != null) ? item.getMedia().getDuration() : 0;
     }
 
+    // extra-sort-options
     private static long size(@Nullable FeedItem item) {
-        return (item != null && item.getMedia() != null) ? item.getMedia().getSize() : 0;
+        // This now returns size on disk, not size of the media.
+        long sizeToReturn = 0L;
+        if (item != null & item.getMedia() != null) {
+            if (item.getMedia().isDownloaded()) {
+                sizeToReturn = item.getMedia().getSize();
+            } else {
+                sizeToReturn = 0L;
+            }
+        }
+        return sizeToReturn;
     }
 
+    // extra-sort-options
     private static long density(@Nullable FeedItem item) {
         if(item != null && item.getMedia() != null) {
-	    long diskSize = item.getMedia().getSize();
+            System.out.print(item.getTitle());
+    	    long diskSize = item.getMedia().getSize();
 
-	    // If the item isn't downloaded, the size on disk is really 0
-	    if(!item.getMedia().isDownloaded()) {
-		diskSize = 0L;
-	    }
+	        // If the item isn't downloaded, the size on disk is really 0
+	        if(!item.getMedia().isDownloaded()) {
+		    diskSize = 0L;
+	        }
 
             // use duration + 1 to calculate density so we're not
-	    // dividing by 0 if duration == 0
-            return diskSize/(item.getMedia().getDuration() + 1);
-	} else {
-	    // If it's null or getMedia() is null, density is minimum
-	    return -1;
-	}
+	        // dividing by 0 if duration == 0
+                return diskSize/(item.getMedia().getDuration() + 1);
+	    } else {
+	        // If it's null or getMedia() is null, density is minimum
+	        return -1;
+	    }
     }
 
     @NonNull
