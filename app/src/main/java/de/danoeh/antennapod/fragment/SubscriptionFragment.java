@@ -87,6 +87,8 @@ public class SubscriptionFragment extends Fragment
     private Disposable disposable;
     private SharedPreferences prefs;
 
+    private FloatingActionButton subscriptionAddButton;
+
     private SpeedDialView speedDialView;
 
     private List<NavDrawerData.DrawerItem> listItems;
@@ -102,8 +104,6 @@ public class SubscriptionFragment extends Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-
         prefs = requireActivity().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
@@ -157,7 +157,7 @@ public class SubscriptionFragment extends Fragment
         progressBar = root.findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
 
-        FloatingActionButton subscriptionAddButton = root.findViewById(R.id.subscriptions_add);
+        subscriptionAddButton = root.findViewById(R.id.subscriptions_add);
         subscriptionAddButton.setOnClickListener(view -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).loadChildFragment(new AddFeedFragment());
@@ -175,16 +175,6 @@ public class SubscriptionFragment extends Fragment
         speedDialView = root.findViewById(R.id.fabSD);
         speedDialView.setOverlayLayout(root.findViewById(R.id.fabSDOverlay));
         speedDialView.inflate(R.menu.nav_feed_action_speeddial);
-        speedDialView.setOnChangeListener(new SpeedDialView.OnChangeListener() {
-            @Override
-            public boolean onMainActionSelected() {
-                return false;
-            }
-
-            @Override
-            public void onToggleChanged(boolean isOpen) {
-            }
-        });
         speedDialView.setOnActionSelectedListener(actionItem -> {
             new FeedMultiSelectActionHandler((MainActivity) getActivity(), subscriptionAdapter.getSelectedItems())
                     .handleAction(actionItem.getId());
@@ -338,7 +328,6 @@ public class SubscriptionFragment extends Fragment
 
         Feed feed = ((NavDrawerData.FeedDrawerItem) drawerItem).feed;
         if (itemId == R.id.multi_select) {
-            speedDialView.setVisibility(View.VISIBLE);
             return subscriptionAdapter.onContextItemSelected(item);
         }
         return FeedMenuHandler.onMenuItemClicked(this, item.getItemId(), feed, this::loadSubscriptions);
@@ -358,6 +347,7 @@ public class SubscriptionFragment extends Fragment
     public void onEndSelectMode() {
         speedDialView.close();
         speedDialView.setVisibility(View.GONE);
+        subscriptionAddButton.setVisibility(View.VISIBLE);
         subscriptionAdapter.setItems(listItems);
     }
 
@@ -370,5 +360,7 @@ public class SubscriptionFragment extends Fragment
             }
         }
         subscriptionAdapter.setItems(feedsOnly);
+        speedDialView.setVisibility(View.VISIBLE);
+        subscriptionAddButton.setVisibility(View.GONE);
     }
 }

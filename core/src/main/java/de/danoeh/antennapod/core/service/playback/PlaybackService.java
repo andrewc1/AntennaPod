@@ -2,6 +2,7 @@ package de.danoeh.antennapod.core.service.playback;
 
 import static de.danoeh.antennapod.model.feed.FeedPreferences.SPEED_USE_GLOBAL;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +15,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -45,8 +47,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.media.MediaBrowserServiceCompat;
 
+import de.danoeh.antennapod.ui.notifications.NotificationUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -72,8 +76,7 @@ import de.danoeh.antennapod.core.util.ChapterUtils;
 import de.danoeh.antennapod.core.util.FeedItemUtil;
 import de.danoeh.antennapod.core.util.FeedUtil;
 import de.danoeh.antennapod.core.util.IntentUtils;
-import de.danoeh.antennapod.core.util.NetworkUtils;
-import de.danoeh.antennapod.core.util.gui.NotificationUtils;
+import de.danoeh.antennapod.net.common.NetworkUtils;
 import de.danoeh.antennapod.core.util.playback.PlayableUtils;
 import de.danoeh.antennapod.core.util.playback.PlaybackServiceStarter;
 import de.danoeh.antennapod.core.widget.WidgetUpdater;
@@ -129,6 +132,8 @@ public class PlaybackService extends MediaBrowserServiceCompat {
     private static final String CUSTOM_ACTION_REWIND = "action.de.danoeh.antennapod.core.service.rewind";
     private static final String CUSTOM_ACTION_CHANGE_PLAYBACK_SPEED =
             "action.de.danoeh.antennapod.core.service.changePlaybackSpeed";
+    private static final String CUSTOM_ACTION_TOGGLE_SLEEP_TIMER =
+            "action.de.danoeh.antennapod.core.service.toggleSleepTimer";
     public static final String CUSTOM_ACTION_NEXT_CHAPTER = "action.de.danoeh.antennapod.core.service.next_chapter";
 
     /**
@@ -301,7 +306,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
         if (notificationBuilder.getPlayerStatus() == PlayerStatus.PLAYING) {
             notificationBuilder.setPlayerStatus(PlayerStatus.STOPPED);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
+                    == PackageManager.PERMISSION_GRANTED) {
+                notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+            }
         }
         stateManager.stopForeground(!UserPreferences.isPersistNotify());
         isRunning = false;
@@ -626,7 +634,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
                         pendingIntentAlwaysAllow)
                 .setAutoCancel(true);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(R.id.notification_streaming_confirmation, builder.build());
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            notificationManager.notify(R.id.notification_streaming_confirmation, builder.build());
+        }
     }
 
     /**
@@ -748,7 +759,7 @@ public class PlaybackService extends MediaBrowserServiceCompat {
         }
 
         if (!playable.getIdentifier().equals(PlaybackPreferences.getCurrentlyPlayingFeedMediaId())) {
-            PlaybackPreferences.clearCurrentlyPlayingTemporaryPlaybackSpeed();
+            PlaybackPreferences.clearCurrentlyPlayingTemporaryPlaybackSettings();
         }
 
         mediaPlayer.playMediaObject(playable, stream, true, true);
@@ -977,6 +988,7 @@ public class PlaybackService extends MediaBrowserServiceCompat {
     @SuppressWarnings("unused")
     public void sleepTimerUpdate(SleepTimerUpdatedEvent event) {
         if (event.isOver()) {
+            updateMediaSession(mediaPlayer.getPlayerStatus());
             mediaPlayer.pause(true, true);
             mediaPlayer.setVolume(1.0f, 1.0f);
             int newPosition = mediaPlayer.getPosition() - (int) SleepTimer.NOTIFICATION_THRESHOLD / 2;
@@ -988,7 +1000,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
             Log.d(TAG, "onSleepTimerAlmostExpired: " + multiplicator);
             mediaPlayer.setVolume(multiplicator, multiplicator);
         } else if (event.isCancelled()) {
+            updateMediaSession(mediaPlayer.getPlayerStatus());
             mediaPlayer.setVolume(1.0f, 1.0f);
+        } else if (event.wasJustEnabled()) {
+            updateMediaSession(mediaPlayer.getPlayerStatus());
         }
     }
 
@@ -1041,7 +1056,7 @@ public class PlaybackService extends MediaBrowserServiceCompat {
      */
     private void onPlaybackEnded(MediaType mediaType, boolean stopPlaying) {
         Log.d(TAG, "Playback ended");
-        PlaybackPreferences.clearCurrentlyPlayingTemporaryPlaybackSpeed();
+        PlaybackPreferences.clearCurrentlyPlayingTemporaryPlaybackSettings();
         if (stopPlaying) {
             taskManager.cancelPositionSaver();
             cancelPositionObserver();
@@ -1189,7 +1204,7 @@ public class PlaybackService extends MediaBrowserServiceCompat {
             this.autoSkippedFeedMediaId = feedMedia.getItem().getIdentifyingValue();
             mediaPlayer.skip();
         }
-   }
+    }
 
     /**
      * Updates the Media Session for the corresponding status.
@@ -1269,6 +1284,16 @@ public class PlaybackService extends MediaBrowserServiceCompat {
                     R.drawable.ic_notification_playback_speed
                 ).build()
             );
+        }
+
+        if (UserPreferences.showSleepTimerOnFullNotification()) {
+            @DrawableRes int icon = R.drawable.ic_notification_sleep;
+            if (sleepTimerActive()) {
+                icon = R.drawable.ic_notification_sleep_off;
+            }
+            sessionState.addCustomAction(
+                    new PlaybackStateCompat.CustomAction.Builder(CUSTOM_ACTION_TOGGLE_SLEEP_TIMER,
+                            getString(R.string.sleep_timer_label), icon).build());
         }
 
         if (UserPreferences.showNextChapterOnFullNotification()) {
@@ -1378,14 +1403,20 @@ public class PlaybackService extends MediaBrowserServiceCompat {
         notificationBuilder.updatePosition(getCurrentPosition(), getCurrentPlaybackSpeed());
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+        }
 
         if (!notificationBuilder.isIconCached()) {
             playableIconLoaderThread = new Thread(() -> {
                 Log.d(TAG, "Loading notification icon");
                 notificationBuilder.loadIcon();
                 if (!Thread.currentThread().isInterrupted()) {
-                    notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+                    if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                            Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                        notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+                    }
                     updateMediaSessionMetadata(playable);
                 }
             });
@@ -1588,8 +1619,15 @@ public class PlaybackService extends MediaBrowserServiceCompat {
             if (((FeedMedia) getPlayable()).getItem().getFeed().getId() == event.getFeedId()) {
                 if (event.getSpeed() == SPEED_USE_GLOBAL) {
                     setSpeed(UserPreferences.getPlaybackSpeed(getPlayable().getMediaType()));
+                    setSkipSilence(UserPreferences.isSkipSilence());
                 } else {
                     setSpeed(event.getSpeed());
+                    FeedPreferences.SkipSilence skipSilence = event.getSkipSilence();
+                    if (skipSilence == FeedPreferences.SkipSilence.GLOBAL) {
+                        setSkipSilence(UserPreferences.isSkipSilence());
+                    } else {
+                        setSkipSilence(skipSilence == FeedPreferences.SkipSilence.AGGRESSIVE);
+                    }
                 }
             }
         }
@@ -1601,11 +1639,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
         if (getPlayable() instanceof FeedMedia) {
             if (((FeedMedia) getPlayable()).getItem().getFeed().getId() == event.getFeedId()) {
                 if (event.getSkipEnding() != 0) {
-                   FeedPreferences feedPreferences
-                           = ((FeedMedia) getPlayable()).getItem().getFeed().getPreferences();
-                   feedPreferences.setFeedSkipIntro(event.getSkipIntro());
-                   feedPreferences.setFeedSkipEnding(event.getSkipEnding());
-
+                    FeedPreferences feedPreferences
+                            = ((FeedMedia) getPlayable()).getItem().getFeed().getPreferences();
+                    feedPreferences.setFeedSkipIntro(event.getSkipIntro());
+                    feedPreferences.setFeedSkipEnding(event.getSkipEnding());
                 }
             }
         }
@@ -1653,18 +1690,27 @@ public class PlaybackService extends MediaBrowserServiceCompat {
             UserPreferences.setPlaybackSpeed(speed);
         }
 
-        mediaPlayer.setPlaybackParams(speed, UserPreferences.isSkipSilence());
+        mediaPlayer.setPlaybackParams(speed, getCurrentSkipSilence());
     }
 
-    public void skipSilence(boolean skipSilence) {
+    public void setSkipSilence(boolean skipSilence) {
+        PlaybackPreferences.setCurrentlyPlayingTemporarySkipSilence(skipSilence);
+        UserPreferences.setSkipSilence(skipSilence);
         mediaPlayer.setPlaybackParams(getCurrentPlaybackSpeed(), skipSilence);
     }
 
     public float getCurrentPlaybackSpeed() {
-        if(mediaPlayer == null) {
+        if (mediaPlayer == null) {
             return 1.0f;
         }
         return mediaPlayer.getPlaybackSpeed();
+    }
+
+    public boolean getCurrentSkipSilence() {
+        if (mediaPlayer == null) {
+            return false;
+        }
+        return mediaPlayer.getSkipSilence();
     }
 
     public boolean isStartWhenPrepared() {
@@ -1748,7 +1794,10 @@ public class PlaybackService extends MediaBrowserServiceCompat {
                         notificationBuilder.updatePosition(getCurrentPosition(), getCurrentPlaybackSpeed());
                         NotificationManager notificationManager = (NotificationManager)
                                 getSystemService(NOTIFICATION_SERVICE);
-                        notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+                        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                            notificationManager.notify(R.id.notification_playing, notificationBuilder.build());
+                        }
                     }
                     skipEndingIfNecessary();
                 });
@@ -1949,6 +1998,12 @@ public class PlaybackService extends MediaBrowserServiceCompat {
                         newSpeed = selectedSpeeds.get(speedPosition + 1);
                     }
                     onSetPlaybackSpeed(newSpeed);
+                }
+            } else if (CUSTOM_ACTION_TOGGLE_SLEEP_TIMER.equals(action)) {
+                if (sleepTimerActive()) {
+                    disableSleepTimer();
+                } else {
+                    setSleepTimer(SleepTimerPreferences.timerMillis());
                 }
             }
         }
