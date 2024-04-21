@@ -69,6 +69,7 @@
     <string name="deny_label">Deny</string>
     <string name="open_settings">Open settings</string>
     <string name="configure_home">Configure Home Screen</string>
+    <string name="section_hidden">Hidden</string>
 
     <!-- Download Statistics fragment -->
     <string name="total_size_downloaded_podcasts">Total size of episodes on the device</string>
@@ -218,8 +219,6 @@
     <string name="pause_label">Pause</string>
     <string name="stream_label">Stream</string>
     <string name="delete_label">Delete</string>
-    <string name="delete_failed">Unable to delete file. Rebooting the device could help.</string>
-    <string name="delete_local_failed">Unable to delete file. Try re-connecting the local folder from the podcast info screen.</string>
     <string name="delete_episode_label">Delete episode</string>
     <plurals name="deleted_multi_episode_batch_label">
         <item quantity="one">1 downloaded episode deleted.</item>
@@ -762,9 +761,8 @@
     <string name="search_itunes_label">Search Apple Podcasts</string>
     <string name="search_podcastindex_label">Search Podcast Index</string>
     <string name="search_fyyd_label">Search fyyd</string>
-    <string name="gpodnet_search_hint">Search gpodder.net</string>
     <string name="advanced">Advanced</string>
-    <string name="add_podcast_by_url">Add Podcast by RSS address</string>
+    <string name="add_podcast_by_url">Add podcast by RSS address</string>
     <string name="add_podcast_by_url_hint" translatable="false">www.example.com/feed</string>
     <string name="discover">Discover</string>
     <string name="discover_hide">Hide</string>
@@ -826,6 +824,7 @@
 
     <!-- Subscriptions fragment -->
     <string name="subscription_num_columns">Number of columns</string>
+    <string name="subscription_display_list">List</string>
 
     <!-- Notification channels -->
     <string name="notification_group_errors">Errors</string>

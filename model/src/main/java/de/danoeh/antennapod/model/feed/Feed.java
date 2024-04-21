@@ -1,13 +1,11 @@
 package de.danoeh.antennapod.model.feed;
 
-import android.text.TextUtils;
-
 import androidx.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Data Object for a whole feed.
@@ -25,7 +23,6 @@ public class Feed {
     private long id;
     private String localFileUrl;
     private String downloadUrl;
-    private boolean downloaded;
     /**
      * title as defined by the feed.
      */
@@ -57,6 +54,7 @@ public class Feed {
      * String that identifies the last update (adopted from Last-Modified or ETag header).
      */
     private String lastModified;
+    private long lastRefreshAttempt;
 
     private ArrayList<FeedFunding> fundingList;
     /**
@@ -110,11 +108,11 @@ public class Feed {
     public Feed(long id, String lastModified, String title, String customTitle, String link,
                 String description, String paymentLinks, String author, String language,
                 String type, String feedIdentifier, String imageUrl, String fileUrl,
-                String downloadUrl, boolean downloaded, boolean paged, String nextPageLink,
+                String downloadUrl, long lastRefreshAttempt, boolean paged, String nextPageLink,
                 String filter, @Nullable SortOrder sortOrder, boolean lastUpdateFailed) {
         this.localFileUrl = fileUrl;
         this.downloadUrl = downloadUrl;
-        this.downloaded = downloaded;
+        this.lastRefreshAttempt = lastRefreshAttempt;
         this.id = id;
         this.feedTitle = title;
         this.customTitle = customTitle;
@@ -133,7 +131,7 @@ public class Feed {
         if (filter != null) {
             this.itemfilter = new FeedItemFilter(filter);
         } else {
-            this.itemfilter = new FeedItemFilter(new String[0]);
+            this.itemfilter = new FeedItemFilter();
         }
         setSortOrder(sortOrder);
         this.lastUpdateFailed = lastUpdateFailed;
@@ -144,16 +142,9 @@ public class Feed {
      */
     public Feed(long id, String lastModified, String title, String link, String description, String paymentLink,
                 String author, String language, String type, String feedIdentifier, String imageUrl, String fileUrl,
-                String downloadUrl, boolean downloaded) {
+                String downloadUrl, long lastRefreshAttempt) {
         this(id, lastModified, title, null, link, description, paymentLink, author, language, type, feedIdentifier,
-                imageUrl, fileUrl, downloadUrl, downloaded, false, null, null, null, false);
-    }
-
-    /**
-     * This constructor can be used when parsing feed data. Only the 'lastUpdate' and 'items' field are initialized.
-     */
-    public Feed() {
-        super();
+                imageUrl, fileUrl, downloadUrl, lastRefreshAttempt, false, null, null, null, false);
     }
 
     /**
@@ -163,7 +154,7 @@ public class Feed {
     public Feed(String url, String lastModified) {
         this.localFileUrl = null;
         this.downloadUrl = url;
-        this.downloaded = false;
+        this.lastRefreshAttempt = 0;
         this.lastModified = lastModified;
     }
 
@@ -213,9 +204,9 @@ public class Feed {
     }
 
     public String getHumanReadableIdentifier() {
-        if (!TextUtils.isEmpty(customTitle)) {
+        if (!StringUtils.isEmpty(customTitle)) {
             return customTitle;
-        } else if (!TextUtils.isEmpty(feedTitle)) {
+        } else if (!StringUtils.isEmpty(feedTitle)) {
             return feedTitle;
         } else {
             return downloadUrl;
@@ -249,70 +240,15 @@ public class Feed {
         if (other.fundingList != null) {
             fundingList = other.fundingList;
         }
+        if (other.lastRefreshAttempt > lastRefreshAttempt) {
+            lastRefreshAttempt = other.lastRefreshAttempt;
+        }
         // this feed's nextPage might already point to a higher page, so we only update the nextPage value
         // if this feed is not paged and the other feed is.
         if (!this.paged && other.paged) {
             this.paged = other.paged;
             this.nextPageLink = other.nextPageLink;
         }
-    }
-
-    /**
-     * Compare's this FeedFile's attribute values with another FeedFile's
-     * attribute values. This method will only compare attributes which were
-     * read from the feed.
-     *
-     * @return true if attribute values are different, false otherwise
-     */
-    public boolean compareWithOther(Feed other) {
-        if (!StringUtils.equals(downloadUrl, other.downloadUrl)) {
-            return true;
-        }
-        if (other.imageUrl != null) {
-            if (imageUrl == null || !TextUtils.equals(imageUrl, other.imageUrl)) {
-                return true;
-            }
-        }
-        if (!TextUtils.equals(feedTitle, other.feedTitle)) {
-            return true;
-        }
-        if (other.feedIdentifier != null) {
-            if (feedIdentifier == null || !feedIdentifier.equals(other.feedIdentifier)) {
-                return true;
-            }
-        }
-        if (other.link != null) {
-            if (link == null || !link.equals(other.link)) {
-                return true;
-            }
-        }
-        if (other.description != null) {
-            if (description == null || !description.equals(other.description)) {
-                return true;
-            }
-        }
-        if (other.language != null) {
-            if (language == null || !language.equals(other.language)) {
-                return true;
-            }
-        }
-        if (other.author != null) {
-            if (author == null || !author.equals(other.author)) {
-                return true;
-            }
-        }
-        if (other.fundingList != null) {
-            if (fundingList == null || !fundingList.equals(other.fundingList)) {
-                return true;
-            }
-        }
-        if (other.isPaged() && !this.isPaged()) {
-            return true;
-        }
-        if (!TextUtils.equals(other.getNextPageLink(), this.getNextPageLink())) {
-            return true;
-        }
-        return false;
     }
 
     public FeedItem getMostRecentItem() {
@@ -329,7 +265,7 @@ public class Feed {
     }
 
     public String getTitle() {
-        return !TextUtils.isEmpty(customTitle) ? customTitle : feedTitle;
+        return !StringUtils.isEmpty(customTitle) ? customTitle : feedTitle;
     }
 
     public void setTitle(String title) {
@@ -455,31 +391,28 @@ public class Feed {
         return id;
     }
 
-    public String getFile_url() {
+    public String getLocalFileUrl() {
         return localFileUrl;
     }
 
-    public void setFile_url(String fileUrl) {
+    public void setLocalFileUrl(String fileUrl) {
         this.localFileUrl = fileUrl;
-        if (fileUrl == null) {
-            downloaded = false;
-        }
     }
 
-    public String getDownload_url() {
+    public String getDownloadUrl() {
         return downloadUrl;
     }
 
-    public void setDownload_url(String downloadUrl) {
+    public void setDownloadUrl(String downloadUrl) {
         this.downloadUrl = downloadUrl;
     }
 
-    public boolean isDownloaded() {
-        return downloaded;
+    public long getLastRefreshAttempt() {
+        return lastRefreshAttempt;
     }
 
-    public void setDownloaded(boolean downloaded) {
-        this.downloaded = downloaded;
+    public void setLastRefreshAttempt(long lastRefreshAttempt) {
+        this.lastRefreshAttempt = lastRefreshAttempt;
     }
 
     public int getPageNr() {
@@ -509,12 +442,6 @@ public class Feed {
     @Nullable
     public FeedItemFilter getItemFilter() {
         return itemfilter;
-    }
-
-    public void setItemFilter(String[] properties) {
-        if (properties != null) {
-            this.itemfilter = new FeedItemFilter(properties);
-        }
     }
 
     @Nullable

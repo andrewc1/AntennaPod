@@ -3,6 +3,7 @@ package de.danoeh.antennapod.model.feed;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -182,8 +183,8 @@ public class FeedItem implements Serializable {
             return itemIdentifier;
         } else if (title != null && !title.isEmpty()) {
             return title;
-        } else if (hasMedia() && media.getDownload_url() != null) {
-            return media.getDownload_url();
+        } else if (hasMedia() && media.getDownloadUrl() != null) {
+            return media.getDownloadUrl();
         } else {
             return link;
         }
@@ -203,6 +204,19 @@ public class FeedItem implements Serializable {
 
     public String getLink() {
         return link;
+    }
+
+    /**
+     * Get the link for the feed item for the purpose of Share.
+     * It falls backs to the feed's link if the item has no link.
+     */
+    public String getLinkWithFallback() {
+        if (StringUtils.isNotBlank(link)) {
+            return link;
+        } else if (StringUtils.isNotBlank(getFeed().getLink())) {
+            return getFeed().getLink();
+        }
+        return null;
     }
 
     public void setLink(String link) {
@@ -325,7 +339,7 @@ public class FeedItem implements Serializable {
         if (imageUrl != null) {
             return imageUrl;
         } else if (media != null && media.hasEmbeddedPicture()) {
-            return FeedMedia.FILENAME_PREFIX_EMBEDDED_COVER + media.getLocalMediaUrl();
+            return FeedMedia.FILENAME_PREFIX_EMBEDDED_COVER + media.getLocalFileUrl();
         } else if (feed != null) {
             return feed.getImageUrl();
         } else {
