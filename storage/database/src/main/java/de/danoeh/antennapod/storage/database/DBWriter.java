@@ -119,6 +119,14 @@ public class DBWriter {
             media.setLocalFileUrl(null);
             localDelete = true;
         } else if (media.getLocalFileUrl() != null) {
+            // delete transcript file before the media file because the fileurl is needed
+            if (media.getTranscriptFileUrl() != null) {
+                File transcriptFile = new File(media.getTranscriptFileUrl());
+                if (transcriptFile.exists() && !transcriptFile.delete()) {
+                    Log.d(TAG, "Deletion of transcript file failed.");
+                }
+            }
+
             // delete downloaded media file
             File mediaFile = new File(media.getLocalFileUrl());
             if (mediaFile.exists() && !mediaFile.delete()) {
@@ -730,20 +738,10 @@ public class DBWriter {
      */
     @NonNull
     public static Future<?> markItemPlayed(FeedItem item, int played, boolean resetMediaPosition) {
-        long mediaId = (item.hasMedia()) ? item.getMedia().getId() : 0;
-        return markItemPlayed(item.getId(), played, mediaId, resetMediaPosition);
-    }
-
-    @NonNull
-    private static Future<?> markItemPlayed(final long itemId,
-                                            final int played,
-                                            final long mediaId,
-                                            final boolean resetMediaPosition) {
         return runOnDbThread(() -> {
             final PodDBAdapter adapter = PodDBAdapter.getInstance();
             adapter.open();
-            adapter.setFeedItemRead(played, itemId, mediaId,
-                    resetMediaPosition);
+            adapter.setFeedItemRead(item, played, resetMediaPosition);
             adapter.close();
 
             EventBus.getDefault().post(new UnreadItemsUpdateEvent());
