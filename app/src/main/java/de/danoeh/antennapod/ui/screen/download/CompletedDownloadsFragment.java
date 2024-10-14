@@ -1,5 +1,6 @@
 package de.danoeh.antennapod.ui.screen.download;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -18,6 +19,7 @@ import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.MainActivity;
 import de.danoeh.antennapod.event.FeedUpdateRunningEvent;
+import de.danoeh.antennapod.ui.common.ConfirmationDialog;
 import de.danoeh.antennapod.ui.episodeslist.EpisodeItemListAdapter;
 import de.danoeh.antennapod.actionbutton.DeleteActionButton;
 import de.danoeh.antennapod.event.DownloadLogEvent;
@@ -117,17 +119,13 @@ public class CompletedDownloadsFragment extends Fragment
 
         floatingSelectMenu = root.findViewById(R.id.floatingSelectMenu);
         floatingSelectMenu.inflate(R.menu.episodes_apply_action_speeddial);
-        floatingSelectMenu.getMenu().findItem(R.id.download_batch).setVisible(false);
-        floatingSelectMenu.getMenu().findItem(R.id.mark_read_batch).setVisible(false);
-        floatingSelectMenu.getMenu().findItem(R.id.mark_unread_batch).setVisible(false);
-        floatingSelectMenu.getMenu().findItem(R.id.remove_from_inbox_batch).setVisible(false);
         floatingSelectMenu.setOnMenuItemClickListener(menuItem -> {
             if (adapter.getSelectedCount() == 0) {
                 ((MainActivity) getActivity()).showSnackbarAbovePlayer(R.string.no_items_selected,
                         Snackbar.LENGTH_SHORT);
                 return false;
             }
-            new EpisodeMultiSelectActionHandler(((MainActivity) getActivity()), menuItem.getItemId())
+            new EpisodeMultiSelectActionHandler(getActivity(), menuItem.getItemId())
                     .handleAction(adapter.getSelectedItems());
             adapter.endSelectMode();
             return true;
@@ -185,6 +183,23 @@ public class CompletedDownloadsFragment extends Fragment
             return true;
         } else if (item.getItemId() == R.id.downloads_sort) {
             new DownloadsSortDialog().show(getChildFragmentManager(), "SortDialog");
+            return true;
+        } else if (item.getItemId() == R.id.action_delete_downloads_played) {
+            ConfirmationDialog dialog = new ConfirmationDialog(getActivity(),
+                    R.string.delete_downloads_played,  R.string.delete_downloads_played_confirmation) {
+                @Override
+                public void onConfirmButtonPressed(DialogInterface clickedDialog) {
+                    clickedDialog.dismiss();
+                    Observable.fromCallable(() -> DBReader.getEpisodes(0, Integer.MAX_VALUE,
+                                    new FeedItemFilter(FeedItemFilter.DOWNLOADED, FeedItemFilter.INCLUDE_NOT_SUBSCRIBED,
+                                            FeedItemFilter.PLAYED), SortOrder.DATE_OLD_NEW))
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(items -> new EpisodeMultiSelectActionHandler(getActivity(), R.id.remove_item)
+                                    .handleAction(items), error -> Log.e(TAG, Log.getStackTraceString(error)));
+                }
+            };
+            dialog.createNewDialog().show();
             return true;
         }
         return false;
@@ -369,6 +384,13 @@ public class CompletedDownloadsFragment extends Fragment
                 menu.findItem(R.id.multi_select).setVisible(true);
             }
             MenuItemUtils.setOnClickListeners(menu, CompletedDownloadsFragment.this::onContextItemSelected);
+        }
+
+        @Override
+        protected void onSelectedItemsUpdated() {
+            super.onSelectedItemsUpdated();
+            FeedItemMenuHandler.onPrepareMenu(floatingSelectMenu.getMenu(), getSelectedItems());
+            floatingSelectMenu.updateItemVisibility();
         }
     }
 

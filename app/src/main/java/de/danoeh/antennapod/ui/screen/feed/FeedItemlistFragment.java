@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.MainActivity;
@@ -63,7 +62,7 @@ import de.danoeh.antennapod.ui.screen.download.DownloadLogDetailsDialog;
 import de.danoeh.antennapod.ui.screen.download.DownloadLogFragment;
 import de.danoeh.antennapod.ui.screen.episode.ItemPagerFragment;
 import de.danoeh.antennapod.ui.screen.feed.preferences.FeedSettingsFragment;
-import de.danoeh.antennapod.ui.share.ShareUtils;
+import de.danoeh.antennapod.ui.screen.subscriptions.FeedMenuHandler;
 import de.danoeh.antennapod.ui.swipeactions.SwipeActions;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -251,7 +250,7 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
             viewBinding.toolbar.getMenu().findItem(R.id.visit_website_item).setVisible(false);
         }
         if (feed.isLocalFeed()) {
-            viewBinding.toolbar.getMenu().findItem(R.id.share_item).setVisible(false);
+            viewBinding.toolbar.getMenu().findItem(R.id.share_feed).setVisible(false);
         }
         if (feed.getState() == Feed.STATE_NOT_SUBSCRIBED) {
             viewBinding.toolbar.getMenu().findItem(R.id.sort_items).setVisible(false);
@@ -280,10 +279,10 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
         }
         if (item.getItemId() == R.id.visit_website_item) {
             IntentUtils.openInBrowser(getContext(), feed.getLink());
-        } else if (item.getItemId() == R.id.share_item) {
-            ShareUtils.shareFeedLink(getContext(), feed);
+            return true;
         } else if (item.getItemId() == R.id.refresh_item) {
             FeedUpdateManager.getInstance().runOnceOrAsk(getContext(), feed);
+            return true;
         } else if (item.getItemId() == R.id.refresh_complete_item) {
             new Thread(() -> {
                 feed.setNextPageLink(feed.getDownloadUrl());
@@ -295,24 +294,25 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
                     throw new RuntimeException(e);
                 }
             }).start();
+            return true;
         } else if (item.getItemId() == R.id.sort_items) {
             SingleFeedSortDialog.newInstance(feed).show(getChildFragmentManager(), "SortDialog");
-        } else if (item.getItemId() == R.id.rename_item) {
-            new RenameFeedDialog(getActivity(), feed).show();
+            return true;
         } else if (item.getItemId() == R.id.remove_feed) {
             RemoveFeedDialog.show(getContext(), feed, () -> {
                 ((MainActivity) getActivity()).loadFragment(UserPreferences.getDefaultPage(), null);
                 // Make sure fragment is hidden before actually starting to delete
                 getActivity().getSupportFragmentManager().executePendingTransactions();
             });
-        } else if (item.getItemId() == R.id.remove_all_inbox_item) {
-            showRemoveAllDialog();
+            return true;
         } else if (item.getItemId() == R.id.action_search) {
             ((MainActivity) getActivity()).loadChildFragment(SearchFragment.newInstance(feed.getId(), feed.getTitle()));
-        } else {
-            return false;
+            return true;
         }
-        return true;
+
+        Runnable showRemovedAllSnackbar = () -> ((MainActivity) getActivity())
+                .showSnackbarAbovePlayer(R.string.removed_all_inbox_msg, Toast.LENGTH_SHORT);
+        return FeedMenuHandler.onMenuItemClicked(this, item.getItemId(), feed, showRemovedAllSnackbar);
     }
 
     @Override
@@ -412,8 +412,6 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
     @Override
     public void onStartSelectMode() {
         swipeActions.detach();
-        viewBinding.floatingSelectMenu.getMenu().findItem(R.id.download_batch).setVisible(!feed.isLocalFeed());
-        viewBinding.floatingSelectMenu.setVisibility(View.VISIBLE);
         updateRecyclerPadding();
         updateToolbar();
     }
@@ -561,20 +559,6 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
         }
     }
 
-    private void showRemoveAllDialog() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
-        builder.setTitle(R.string.remove_all_inbox_label);
-        builder.setMessage(R.string.remove_all_inbox_confirmation_msg);
-
-        builder.setPositiveButton(R.string.confirm_label, (dialog, which) -> {
-            dialog.dismiss();
-            DBWriter.removeFeedNewFlag(feedID);
-            ((MainActivity) getActivity()).showSnackbarAbovePlayer(R.string.removed_all_inbox_msg, Toast.LENGTH_SHORT);
-        });
-        builder.setNegativeButton(R.string.cancel_label, null);
-        builder.show();
-    }
-
     private void loadFeedImage() {
         Glide.with(this)
                 .load(feed.getImageUrl())
@@ -708,6 +692,13 @@ public class FeedItemlistFragment extends Fragment implements AdapterView.OnItem
                 menu.findItem(R.id.multi_select).setVisible(true);
             }
             MenuItemUtils.setOnClickListeners(menu, FeedItemlistFragment.this::onContextItemSelected);
+        }
+
+        @Override
+        protected void onSelectedItemsUpdated() {
+            super.onSelectedItemsUpdated();
+            FeedItemMenuHandler.onPrepareMenu(viewBinding.floatingSelectMenu.getMenu(), getSelectedItems());
+            viewBinding.floatingSelectMenu.updateItemVisibility();
         }
     }
 }
