@@ -6,21 +6,28 @@
     <!-- Activity and fragment titles -->
     <string name="provider_authority" translatable="false">de.danoeh.antennapod.provider</string>
     <string name="feed_update_receiver_name">Update subscriptions</string>
-    <string name="feeds_label">Podcasts</string>
     <string name="statistics_label">Statistics</string>
     <string name="add_feed_label">Add podcast</string>
+    <string name="add_feed_label_short">Add</string>
     <string name="episodes_label">Episodes</string>
+    <string name="episodes_label_short">Episodes</string>
     <string name="home_label">Home</string>
+    <string name="home_label_short">Home</string>
     <string name="queue_label">Queue</string>
+    <string name="queue_label_short">Queue</string>
     <string name="inbox_label">Inbox</string>
+    <string name="inbox_label_short">Inbox</string>
     <string name="favorite_episodes_label">Favorites</string>
     <string name="settings_label">Settings</string>
     <string name="downloads_label">Downloads</string>
+    <string name="downloads_label_short">Downloads</string>
     <string name="downloads_log_label">Download log</string>
     <string name="subscriptions_label">Subscriptions</string>
+    <string name="subscriptions_label_short">Subscriptions</string>
     <string name="subscriptions_list_label">Subscriptions list (side menu only)</string>
     <string name="cancel_download_label">Cancel download</string>
     <string name="playback_history_label">Playback history</string>
+    <string name="playback_history_label_short">History</string>
     <string name="years_statistics_label">Years</string>
     <string name="notification_pref_fragment">Notifications</string>
     <string name="current_playing_episode">Current</string>
@@ -294,6 +301,7 @@
     <string name="download_error_parser_exception">The podcast host\'s server sent a broken podcast feed. We recommend checking with a podcast validator such as castfeedvalidator.com and contacting the podcast creator to let them know.</string>
     <string name="download_error_unsupported_type">Unsupported feed type</string>
     <string name="download_error_unsupported_type_html">The podcast host\'s server sent a website, not a podcast.</string>
+    <string name="download_error_unsupported_type_html_manual">The address you entered is a website address, not a podcast RSS address.</string>
     <string name="download_error_not_found">The podcast host\'s server does not know where to find the file. It may have been deleted.</string>
     <string name="download_error_connection_error">Connection error</string>
     <string name="download_error_no_connection">No network connection</string>
@@ -323,7 +331,7 @@
     <string name="authentication_notification_title">Authentication required</string>
     <string name="confirm_mobile_download_dialog_title">Confirm mobile download</string>
     <string name="confirm_mobile_download_dialog_message">Downloading over mobile data connection is disabled in the settings. AntennaPod can download the episode later automatically when Wi-Fi is available.</string>
-    <string name="confirm_mobile_download_dialog_message_vpn">Your VPN app pretends to be a mobile network (metered connection). Downloading over mobile data connection is disabled in the settings. If you want this problem to be fixed, contact the creators of your VPN app.</string>
+    <string name="confirm_mobile_download_dialog_message_vpn">- Using a VPN? Your VPN app pretends to be a mobile network (metered connection). If you want this problem fixed, contact the creators of your VPN app.\n- Not using a VPN? Open the Android Wi-Fi settings and change the type of your Wi-Fi to not be metered.</string>
     <string name="confirm_mobile_download_dialog_download_later">Download later</string>
     <string name="confirm_mobile_download_dialog_allow_this_time">Download anyway</string>
     <plurals name="mobile_download_notice">
@@ -474,6 +482,8 @@
     <string name="pref_nav_drawer_feed_counter_sum">Change the information displayed by the subscription counter. Also affects the sorting of subscriptions if \'Subscription Order\' is set to \'Counter\'.</string>
     <string name="pref_automatic_download_title">Automatic download</string>
     <string name="pref_automatic_download_global_description">Automatically download new episodes. Can be overridden per podcast.</string>
+    <string name="pref_automatic_download_queue_title">Download queued</string>
+    <string name="pref_automatic_download_queue_description">Automatically download queued episodes</string>
     <string name="pref_automatic_download_sum">Configure the automatic download of episodes</string>
     <string name="pref_automatic_download_on_battery_title">Download when not charging</string>
     <string name="pref_automatic_download_on_battery_sum">Allow automatic download when the battery is not charging</string>
@@ -797,7 +807,7 @@
     <string name="search_podcastindex_label">Search Podcast Index</string>
     <string name="search_fyyd_label">Search fyyd</string>
     <string name="add_podcast_by_url">Add podcast by RSS address</string>
-    <string name="add_podcast_by_url_hint" translatable="false">www.example.com/feed</string>
+    <string name="rss_address">RSS address</string>
     <string name="discover">Discover</string>
     <string name="discover_hide">Hide</string>
     <string name="discover_is_hidden">You selected to hide suggestions.</string>
