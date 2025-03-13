@@ -24,7 +24,7 @@
     <string name="downloads_log_label">Download log</string>
     <string name="subscriptions_label">Subscriptions</string>
     <string name="subscriptions_label_short">Subscriptions</string>
-    <string name="subscriptions_list_label">Subscriptions list (side menu only)</string>
+    <string name="subscriptions_list_label">Subscriptions list</string>
     <string name="cancel_download_label">Cancel download</string>
     <string name="playback_history_label">Playback history</string>
     <string name="playback_history_label_short">History</string>
@@ -152,8 +152,8 @@
     <string name="feed_auto_download_always">Always</string>
     <string name="feed_auto_download_never">Never</string>
     <string name="feed_new_episodes_action_add_to_inbox">Add to inbox</string>
-    <string name="feed_new_episodes_action_add_to_queue">Add to queue</string>
-    <string name="feed_new_episodes_action_nothing">Nothing</string>
+    <string name="feed_new_episodes_action_add_to_queue">Add to queue, disable auto download</string>
+    <string name="feed_new_episodes_action_nothing">Nothing, disable auto download</string>
     <string name="episode_cleanup_never">Never</string>
     <string name="episode_cleanup_except_favorite_removal">When not favorited</string>
     <string name="episode_cleanup_queue_removal">When not in queue</string>
@@ -280,6 +280,9 @@
     <string name="no_transcript_label">No transcript</string>
     <string name="remove_from_favorite_label">Remove from favorites</string>
     <string name="visit_website_label">Visit website</string>
+    <string name="visit_social_interact_label">Show comments</string>
+    <string name="visit_social_interact_query_title">You are leaving AntennaPod</string>
+    <string name="visit_social_interact_query_message">Please make sure that you trust the website \"%1$s\".</string>
     <string name="skip_episode_label">Skip episode</string>
     <string name="reset_position">Reset playback position</string>
     <string name="no_items_selected">No items selected</string>
@@ -412,6 +415,8 @@
     <string name="preference_search_hint">Search…</string>
     <string name="preference_search_no_results">No results</string>
     <string name="preference_search_clear_history">Clear history</string>
+    <string name="preference_search_clear_input">Clear</string>
+    <string name="overflow_more">More</string>
     <string name="pref_episode_cleanup_title">Delete before auto download</string>
     <string name="pref_episode_cleanup_summary">Episodes that should be eligible for removal if Auto Download needs space for new episodes</string>
     <string name="pref_pauseOnDisconnect_sum">Pause playback when headphones or bluetooth are disconnected</string>
@@ -463,7 +468,6 @@
     <string name="pref_mobileUpdate_sum">Select what should be allowed over the mobile data connection</string>
     <string name="pref_mobileUpdate_refresh">Podcast refresh</string>
     <string name="pref_mobileUpdate_images">Cover images</string>
-    <string name="pref_mobileUpdate_auto_download">Auto download</string>
     <string name="pref_mobileUpdate_episode_download">Episode download</string>
     <string name="pref_mobileUpdate_streaming">Streaming</string>
     <string name="user_interface_label">User interface</string>
@@ -682,7 +686,6 @@
     <string name="gpodnetauth_existing_devices">Existing devices</string>
     <string name="gpodnetauth_create_device">Create device</string>
     <string name="gpodnetauth_finish_descr">Congratulations! Your gpodder.net account is now linked with your device. AntennaPod will from now on automatically sync subscriptions on your device with your gpodder.net account.</string>
-    <string name="gpodnetauth_finish_butsyncnow">Start sync now</string>
     <string name="pref_gpodnet_setlogin_information_title">Change login information</string>
     <string name="pref_gpodnet_setlogin_information_sum">Change the login information for your gpodder.net account.</string>
     <string name="synchronization_sync_changes_title">Synchronize now</string>
