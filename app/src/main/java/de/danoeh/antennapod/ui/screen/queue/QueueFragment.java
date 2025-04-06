@@ -575,7 +575,6 @@ public class QueueFragment extends Fragment implements MaterialToolbar.OnMenuIte
                 ascendingIsDefault = true;
             }
             super.onAddItem(title, ascending, descending, ascendingIsDefault);
-            }
         }
 
         @Override
