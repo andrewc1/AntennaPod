@@ -21,6 +21,7 @@ import de.danoeh.antennapod.model.feed.FeedItem;
 import de.danoeh.antennapod.model.feed.FeedItemFilter;
 import de.danoeh.antennapod.model.feed.FeedMedia;
 import de.danoeh.antennapod.model.feed.FeedOrder;
+import de.danoeh.antennapod.model.feed.FeedPreferences;
 import de.danoeh.antennapod.model.feed.SortOrder;
 import de.danoeh.antennapod.model.feed.SubscriptionsFilter;
 import de.danoeh.antennapod.model.download.DownloadResult;
@@ -753,6 +754,31 @@ public final class DBReader {
                 queueSize, numNewItems, numDownloadedItems, feedCounters);
         adapter.close();
         return result;
+    }
+
+    public static List<NavDrawerData.TagItem> getAllTags() {
+        Map<String, NavDrawerData.TagItem> tags = new HashMap<>();
+        List<Feed> feeds = getFeedList();
+        for (Feed feed : feeds) {
+            for (String tag : feed.getPreferences().getTags()) {
+                if (FeedPreferences.TAG_ROOT.equals(tag)) {
+                    continue;
+                }
+                if (!tags.containsKey(tag)) {
+                    tags.put(tag, new NavDrawerData.TagItem(tag));
+                }
+                tags.get(tag).addFeed(feed, 0);
+            }
+        }
+        List<NavDrawerData.TagItem> tagsSorted = new ArrayList<>(tags.values());
+        Collections.sort(tagsSorted, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
+        // Root tag here means "all feeds", this is different from the nav drawer.
+        NavDrawerData.TagItem rootTag = new NavDrawerData.TagItem(FeedPreferences.TAG_ROOT);
+        for (Feed feed : feeds) {
+            rootTag.addFeed(feed, 0);
+        }
+        tagsSorted.add(0, rootTag);
+        return tagsSorted;
     }
 
     public static List<FeedItem> searchFeedItems(final long feedId, final String query) {
