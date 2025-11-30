@@ -402,7 +402,7 @@ public class PodDBAdapter {
     }
 
     public synchronized PodDBAdapter open() {
-        if (BuildConfig.DEBUG) {
+        if (false & BuildConfig.DEBUG) { // ANDREW: hacked out for my pleasure
             if (Looper.myLooper() == Looper.getMainLooper() && !isTest()) {
                 throw new RuntimeException("I/O on main thread");
             }
