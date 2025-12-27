@@ -85,6 +85,7 @@ public class SubscriptionFragment extends Fragment
     private ProgressBar progressBar;
     private CollapsingToolbarLayout collapsingContainer;
     private boolean displayUpArrow;
+    private boolean shouldShowTags = false;
 
     private Disposable disposable;
     private SharedPreferences prefs;
@@ -405,9 +406,9 @@ public class SubscriptionFragment extends Fragment
                             restoreScrollPosition(scrollPosition);
                         }
                         emptyView.updateVisibility();
+                        shouldShowTags = false;
                         if (tagAdapter != null) {
                             tagAdapter.setTags(result.second);
-                            boolean shouldShowTags = false;
                             for (NavDrawerData.TagItem tag : result.second) {
                                 if (!FeedPreferences.TAG_ROOT.equals(tag.getTitle())
                                         && !FeedPreferences.TAG_UNTAGGED.equals(tag.getTitle())) {
@@ -416,6 +417,25 @@ public class SubscriptionFragment extends Fragment
                                 }
                             }
                             tagsRecycler.setVisibility(shouldShowTags ? View.VISIBLE : View.GONE);
+                            // Scroll to center the selected tag
+                            tagsRecycler.post(() -> {
+                                int selectedPosition = tagAdapter.getSelectedTagPosition();
+                                if (selectedPosition < 0) {
+                                    return;
+                                }
+                                LinearLayoutManager layoutManager =
+                                        (LinearLayoutManager) tagsRecycler.getLayoutManager();
+                                // Calculate offset to center the selected chip
+                                View selectedView = layoutManager.findViewByPosition(selectedPosition);
+                                if (selectedView != null) {
+                                    int recyclerWidth = tagsRecycler.getWidth();
+                                    int chipWidth = selectedView.getWidth();
+                                    int offset = (recyclerWidth - chipWidth) / 2;
+                                    layoutManager.scrollToPositionWithOffset(selectedPosition, offset);
+                                } else {
+                                    tagsRecycler.scrollToPosition(selectedPosition);
+                                }
+                            });
                         }
                     }, error -> {
                         Log.e(TAG, Log.getStackTraceString(error));
@@ -477,7 +497,7 @@ public class SubscriptionFragment extends Fragment
     public void onEndSelectMode() {
         floatingSelectMenu.setVisibility(View.GONE);
         subscriptionAddButton.setVisibility(View.VISIBLE);
-        tagsRecycler.setVisibility(tagAdapter.getItemCount() > 1 ? View.VISIBLE : View.GONE);
+        tagsRecycler.setVisibility(shouldShowTags ? View.VISIBLE : View.GONE);
         updateFilterVisibility();
         setCollapsingToolbarFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
                 | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
@@ -488,7 +508,7 @@ public class SubscriptionFragment extends Fragment
     public void onStartSelectMode() {
         floatingSelectMenu.setVisibility(View.VISIBLE);
         subscriptionAddButton.setVisibility(View.GONE);
-        tagsRecycler.setVisibility(tagAdapter.getItemCount() > 1 ? View.INVISIBLE : View.GONE);
+        tagsRecycler.setVisibility(shouldShowTags ? View.INVISIBLE : View.GONE);
         updateFilterVisibility();
         setCollapsingToolbarFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
                 | AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED);
