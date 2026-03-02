@@ -529,6 +529,7 @@ public class PodDBAdapter {
 
     /**
      * Inserts or updates a media entry
+     * Use carefully to avoid overwriting properties with stale data.
      *
      * @return the id of the entry
      */
@@ -559,6 +560,24 @@ public class PodDBAdapter {
                     new String[]{String.valueOf(media.getId())});
         }
         return media.getId();
+    }
+
+    /**
+     * Update download state related properties of the feed media.
+     */
+    public void setMediaDownloadInformation(FeedMedia media) {
+        if (media.getId() != 0) {
+            ContentValues values = new ContentValues();
+            values.put(KEY_SIZE, media.getSize());
+            values.put(KEY_FILE_URL, media.getLocalFileUrl());
+            values.put(KEY_DOWNLOAD_URL, media.getDownloadUrl());
+            values.put(KEY_DOWNLOAD_DATE, media.getDownloadDate());
+            values.put(KEY_HAS_EMBEDDED_PICTURE, media.hasEmbeddedPicture());
+            db.update(TABLE_NAME_FEED_MEDIA, values, KEY_ID + "=?",
+                    new String[]{String.valueOf(media.getId())});
+        } else {
+            Log.e(TAG, "setMediaDownloadInformation: ID of media was 0");
+        }
     }
 
     public void setFeedMediaPlaybackInformation(FeedMedia media) {
@@ -729,45 +748,28 @@ public class PodDBAdapter {
         return item.getId();
     }
 
-    public void setFeedItemRead(FeedItem item, int played, boolean resetMediaPosition) {
-        try {
-            db.beginTransactionNonExclusive();
-            ContentValues values = new ContentValues();
-
-            values.put(KEY_READ, played);
-            db.update(TABLE_NAME_FEED_ITEMS, values, KEY_ID + "=?", new String[]{String.valueOf(item.getId())});
-            item.setPlayed(played == FeedItem.PLAYED);
-
-            if (resetMediaPosition && item.hasMedia()) {
-                values.clear();
-                values.put(KEY_POSITION, 0);
-                db.update(TABLE_NAME_FEED_MEDIA, values, KEY_ID + "=?",
-                        new String[]{String.valueOf(item.getMedia().getId())});
-                item.getMedia().setPosition(0);
-            }
-
-            db.setTransactionSuccessful();
-        } catch (SQLException e) {
-            Log.e(TAG, Log.getStackTraceString(e));
-        } finally {
-            db.endTransaction();
-        }
-    }
-
     /**
      * Sets the 'read' attribute of the item.
      *
-     * @param read    must be one of FeedItem.PLAYED, FeedItem.NEW, FeedItem.UNPLAYED
-     * @param itemIds items to change the value of
+     * @param played             New read status of items. See @FeedItem
+     * @param resetMediaPosition Should the postition of the media item be reset?
+     * @param items              Array of items to upgrade
      */
-    public void setFeedItemRead(int read, long... itemIds) {
+    public void setFeedItemRead(int played, boolean resetMediaPosition, FeedItem... items) {
         try {
             db.beginTransactionNonExclusive();
             ContentValues values = new ContentValues();
-            for (long id : itemIds) {
+            for (FeedItem item : items) {
                 values.clear();
-                values.put(KEY_READ, read);
-                db.update(TABLE_NAME_FEED_ITEMS, values, KEY_ID + "=?", new String[]{String.valueOf(id)});
+                values.put(KEY_READ, played);
+                db.update(TABLE_NAME_FEED_ITEMS, values, KEY_ID + "=?", new String[]{String.valueOf(item.getId())});
+
+                if (resetMediaPosition && item.hasMedia()) {
+                    values.clear();
+                    values.put(KEY_POSITION, 0);
+                    db.update(TABLE_NAME_FEED_MEDIA, values, KEY_ID + "=?",
+                            new String[]{String.valueOf(item.getMedia().getId())});
+                }
             }
             db.setTransactionSuccessful();
         } catch (SQLException e) {

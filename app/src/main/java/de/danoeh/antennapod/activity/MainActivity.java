@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -56,6 +55,7 @@ import de.danoeh.antennapod.ui.TransitionEffect;
 import de.danoeh.antennapod.ui.appstartintent.MainActivityStarter;
 import de.danoeh.antennapod.ui.appstartintent.MediaButtonStarter;
 import de.danoeh.antennapod.ui.common.IntentUtils;
+import de.danoeh.antennapod.ui.common.NavigationToolbarActivity;
 import de.danoeh.antennapod.ui.common.ThemeSwitcher;
 import de.danoeh.antennapod.ui.common.ThemeUtils;
 import de.danoeh.antennapod.ui.discovery.DiscoveryFragment;
@@ -76,6 +76,7 @@ import de.danoeh.antennapod.ui.screen.preferences.PreferenceActivity;
 import de.danoeh.antennapod.ui.screen.queue.QueueFragment;
 import de.danoeh.antennapod.ui.screen.rating.RatingDialogManager;
 import de.danoeh.antennapod.ui.screen.subscriptions.SubscriptionFragment;
+import de.danoeh.antennapod.ui.statistics.StatisticsFragment;
 import de.danoeh.antennapod.ui.view.BottomSheetBackPressedCallback;
 import de.danoeh.antennapod.ui.view.LockableBottomSheetBehavior;
 import org.apache.commons.lang3.ArrayUtils;
@@ -90,7 +91,7 @@ import java.util.Objects;
 /**
  * The activity that is shown when the user launches the app.
  */
-public class MainActivity extends CastEnabledActivity {
+public class MainActivity extends CastEnabledActivity implements NavigationToolbarActivity {
 
     private static final String TAG = "MainActivity";
     public static final String MAIN_FRAGMENT_TAG = "main";
@@ -314,6 +315,7 @@ public class MainActivity extends CastEnabledActivity {
         }
     }
 
+    @Override
     public void setupToolbarToggle(@NonNull MaterialToolbar toolbar, boolean displayUpArrow) {
         if (drawerLayout != null) { // Tablet layout does not have a drawer
             if (drawerToggle != null) {
@@ -428,6 +430,9 @@ public class MainActivity extends CastEnabledActivity {
                 break;
             case SubscriptionFragment.TAG:
                 fragment = new SubscriptionFragment();
+                break;
+            case StatisticsFragment.TAG:
+                fragment = new StatisticsFragment();
                 break;
             case DiscoveryFragment.TAG:
                 fragment = new DiscoveryFragment();
@@ -680,7 +685,7 @@ public class MainActivity extends CastEnabledActivity {
             long feedId = intent.getLongExtra(MainActivityStarter.EXTRA_FEED_ID, 0);
             Bundle args = intent.getBundleExtra(MainActivityStarter.EXTRA_FRAGMENT_ARGS);
             if (feedId > 0) {
-                if (intent.getBooleanExtra(MainActivityStarter.EXTRA_CLEAR_BACK_STACK, false)) {
+                if (intent.getBooleanExtra(MainActivityStarter.EXTRA_CLEAR_BACK_STACK, true)) {
                     loadFeedFragmentById(feedId, args);
                 } else {
                     loadChildFragment(FeedItemlistFragment.newInstance(feedId));
@@ -691,7 +696,7 @@ public class MainActivity extends CastEnabledActivity {
             String tag = intent.getStringExtra(MainActivityStarter.EXTRA_FRAGMENT_TAG);
             Bundle args = intent.getBundleExtra(MainActivityStarter.EXTRA_FRAGMENT_ARGS);
             if (tag != null) {
-                if (intent.getBooleanExtra(MainActivityStarter.EXTRA_CLEAR_BACK_STACK, false)) {
+                if (intent.getBooleanExtra(MainActivityStarter.EXTRA_CLEAR_BACK_STACK, true)) {
                     loadFragment(tag, null);
                 } else {
                     loadChildFragment(createFragmentInstance(tag, args), TransitionEffect.NONE, tag);
@@ -767,6 +772,9 @@ public class MainActivity extends CastEnabledActivity {
                     case "SUBSCRIPTIONS":
                         loadFragment(SubscriptionFragment.TAG, null);
                         break;
+                    case "STATISTICS":
+                        loadFragment(StatisticsFragment.TAG, null);
+                        break;
                     default:
                         EventBus.getDefault().post(new MessageEvent(getString(R.string.app_action_not_found, feature)));
                         return;
@@ -814,12 +822,9 @@ public class MainActivity extends CastEnabledActivity {
                         AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
                 return true;
             case KeyEvent.KEYCODE_M:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                            AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
-                    return true;
-                }
-                break;
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
+                return true;
             default:
                 break;
         }
