@@ -1,10 +1,13 @@
 package de.danoeh.antennapod.playback.service;
 
+import android.media.audiofx.LoudnessEnhancer;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.URLUtil;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
+import androidx.core.util.Pair;
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
@@ -20,23 +23,29 @@ import androidx.media3.session.SessionResult;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import de.danoeh.antennapod.event.PlayerErrorEvent;
+import de.danoeh.antennapod.event.StreamingConfirmationEvent;
+import de.danoeh.antennapod.event.settings.VolumeAdaptionChangedEvent;
 import de.danoeh.antennapod.event.PlayerStatusEvent;
 import de.danoeh.antennapod.event.playback.BufferUpdateEvent;
 import de.danoeh.antennapod.event.playback.PlaybackPositionEvent;
-import de.danoeh.antennapod.event.playback.SpeedChangedEvent;
 import de.danoeh.antennapod.event.playback.PlaybackServiceEvent;
 import de.danoeh.antennapod.event.playback.SleepTimerUpdatedEvent;
+import de.danoeh.antennapod.event.playback.SpeedChangedEvent;
 import de.danoeh.antennapod.model.feed.Chapter;
 import de.danoeh.antennapod.model.feed.FeedItem;
 import de.danoeh.antennapod.model.feed.FeedMedia;
 import de.danoeh.antennapod.model.feed.FeedPreferences;
+import de.danoeh.antennapod.model.feed.VolumeAdaptionSetting;
+import de.danoeh.antennapod.net.common.NetworkUtils;
 import de.danoeh.antennapod.net.sync.serviceinterface.SynchronizationQueue;
-import de.danoeh.antennapod.playback.cast.CastPlayerWrapper;
 import de.danoeh.antennapod.playback.base.MediaItemAdapter;
 import de.danoeh.antennapod.playback.base.PlayerStatus;
+import de.danoeh.antennapod.playback.base.RewindAfterPauseUtils;
+import de.danoeh.antennapod.playback.cast.CastPlayerWrapper;
 import de.danoeh.antennapod.playback.service.internal.ExoPlayerUtils;
 import de.danoeh.antennapod.playback.service.internal.MediaLibrarySessionCallback;
 import de.danoeh.antennapod.playback.service.internal.PlayableUtils;
+import de.danoeh.antennapod.playback.service.internal.SkipUtils;
 import de.danoeh.antennapod.playback.service.internal.SleepTimer;
 import de.danoeh.antennapod.playback.service.internal.ClockSleepTimer;
 import de.danoeh.antennapod.playback.service.internal.EpisodeSleepTimer;
@@ -48,14 +57,14 @@ import de.danoeh.antennapod.storage.preferences.SleepTimerType;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.ui.appstartintent.MainActivityStarter;
 import de.danoeh.antennapod.ui.episodes.PlaybackSpeedUtils;
-import de.danoeh.antennapod.ui.widget.WidgetUpdater;
 import de.danoeh.antennapod.ui.notifications.NotificationUtils;
+import de.danoeh.antennapod.ui.widget.WidgetUpdater;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.reactivex.rxjava3.core.Maybe;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -67,16 +76,20 @@ import java.util.concurrent.TimeUnit;
 public class Media3PlaybackService extends MediaLibraryService {
     private static final String TAG = "M3PlaybackService";
     private static final long POSITION_SAVE_INTERVAL_MS = 5000;
-
     private ExoPlayer exoPlayer;
     private Player player;
     private MediaLibrarySession mediaSession;
     private FeedMedia currentPlayable;
+    private String pendingStreamMediaId;
+    private boolean allowStreamingThisTime = false;
     private Disposable mediaLoaderDisposable;
     private Disposable positionObserverDisposable;
     private Disposable queueLoaderDisposable;
     private long lastPositionSaveTime = 0;
     private SleepTimer sleepTimer;
+    @Nullable
+    private LoudnessEnhancer loudnessEnhancer = null;
+    private float volumeAdaptionFactor = 1.0f;
 
     @UnstableApi
     @Override
@@ -90,6 +103,13 @@ public class Media3PlaybackService extends MediaLibraryService {
         setMediaNotificationProvider(notificationProvider);
 
         exoPlayer = ExoPlayerUtils.buildPlayer(this);
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onAudioSessionIdChanged(int audioSessionId) {
+                initLoudnessEnhancer(audioSessionId);
+            }
+        });
+        initLoudnessEnhancer(exoPlayer.getAudioSessionId());
         Player maybeCastPlayer = CastPlayerWrapper.wrap(exoPlayer, this);
         player = new ForwardingPlayer(maybeCastPlayer) {
             @Override
@@ -100,6 +120,26 @@ public class Media3PlaybackService extends MediaLibraryService {
                         .remove(Player.COMMAND_SEEK_TO_PREVIOUS)
                         .remove(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
                         .build();
+            }
+
+            @Override
+            public void play() {
+                if (handleStreamingConfirmation()) {
+                    return;
+                } else if (shouldBlockForStreamingConfirmation()) {
+                    showStreamingConfirmation(currentPlayable);
+                    return;
+                }
+
+                if (currentPlayable != null && !getPlayWhenReady()) {
+                    long savedPosition = getCurrentPosition();
+                    long startPosition = RewindAfterPauseUtils.calculatePositionWithRewind(
+                            (int) savedPosition, currentPlayable.getLastPlayedTimeStatistics());
+                    if (startPosition != savedPosition) {
+                        seekTo(startPosition);
+                    }
+                }
+                super.play();
             }
 
             @Override
@@ -165,6 +205,27 @@ public class Media3PlaybackService extends MediaLibraryService {
 
     @UnstableApi
     private final Player.Listener playerListener = new Player.Listener() {
+        private boolean wasTemporarilySuspended = false;
+
+        @Override
+        public void onPlaybackSuppressionReasonChanged(int playbackSuppressionReason) {
+            if (playbackSuppressionReason
+                    == Player.PLAYBACK_SUPPRESSION_REASON_TRANSIENT_AUDIO_FOCUS_LOSS) {
+                wasTemporarilySuspended = true;
+            } else if (playbackSuppressionReason == Player.PLAYBACK_SUPPRESSION_REASON_NONE
+                    && wasTemporarilySuspended && currentPlayable != null) {
+                wasTemporarilySuspended = false;
+                long savedPosition = player.getCurrentPosition();
+                long startPosition = RewindAfterPauseUtils.calculatePositionWithRewind(
+                        (int) savedPosition, currentPlayable.getLastPlayedTimeStatistics());
+                if (startPosition != savedPosition) {
+                    player.seekTo(startPosition);
+                }
+            } else {
+                wasTemporarilySuspended = false;
+            }
+        }
+
         @Override
         public void onPlaybackStateChanged(int playbackState) {
             if (playbackState == Player.STATE_BUFFERING) {
@@ -269,6 +330,10 @@ public class Media3PlaybackService extends MediaLibraryService {
             queueLoaderDisposable = null;
         }
         saveCurrentPosition();
+        if (loudnessEnhancer != null) {
+            loudnessEnhancer.release();
+            loudnessEnhancer = null;
+        }
         if (player != null) {
             player.removeListener(playerListener);
             player.release();
@@ -293,17 +358,21 @@ public class Media3PlaybackService extends MediaLibraryService {
                             }
                             long position = player.getCurrentPosition();
                             long duration = player.getDuration();
+                            float speed = player.getPlaybackParameters().speed;
                             if (duration > 0) {
                                 EventBus.getDefault().post(
                                         new PlaybackPositionEvent((int) position, (int) duration));
                                 WidgetUpdater.WidgetState widgetState = new WidgetUpdater.WidgetState(currentPlayable,
                                         Util.shouldShowPlayButton(player) ? PlayerStatus.PAUSED : PlayerStatus.PLAYING,
-                                        (int) position, (int) duration, player.getPlaybackParameters().speed);
+                                        (int) position, (int) duration, speed);
                                 WidgetUpdater.updateWidget(this, widgetState);
                                 long currentTime = System.currentTimeMillis();
                                 if (currentTime - lastPositionSaveTime >= POSITION_SAVE_INTERVAL_MS) {
                                     saveCurrentPosition();
                                     lastPositionSaveTime = currentTime;
+                                }
+                                if (SkipUtils.skipEndingIfNecessary(this, currentPlayable, position, duration, speed)) {
+                                    player.seekTo(player.getDuration());
                                 }
                             }
                         }, error -> Log.e(TAG, "Position observer error", error));
@@ -321,6 +390,10 @@ public class Media3PlaybackService extends MediaLibraryService {
         if (player == null || player.getCurrentMediaItem() == null) {
             return;
         }
+        if (MediaItemAdapter.MEDIA_ID_CONFIRM_STREAMING.equals(player.getCurrentMediaItem().mediaId)) {
+            return;
+        }
+        pendingStreamMediaId = null;
         try {
             long mediaId = Long.parseLong(player.getCurrentMediaItem().mediaId);
             if (currentPlayable == null || currentPlayable.getId() != mediaId) {
@@ -335,6 +408,12 @@ public class Media3PlaybackService extends MediaLibraryService {
                             if (player == null) {
                                 return;
                             }
+                            if (needsStreaming(media) && !NetworkUtils.isStreamingAllowed()
+                                    && !allowStreamingThisTime) {
+                                showStreamingConfirmation(media);
+                                return;
+                            }
+                            allowStreamingThisTime = false;
                             currentPlayable.setPosition((int) player.getCurrentPosition());
                             currentPlayable.onPlaybackStart();
                             if (currentPlayable.getItem() != null
@@ -347,6 +426,12 @@ public class Media3PlaybackService extends MediaLibraryService {
                                     currentPlayable) == FeedPreferences.SkipSilence.AGGRESSIVE;
                             PlaybackPreferences.setCurrentlyPlayingTemporarySkipSilence(enabled);
                             exoPlayer.setSkipSilenceEnabled(enabled);
+                            if (currentPlayable.getItem() != null
+                                    && currentPlayable.getItem().getFeed() != null) {
+                                volumeAdaptionFactor = currentPlayable.getItem().getFeed()
+                                        .getPreferences().getVolumeAdaptionSetting().getAdaptionFactor();
+                                applyVolumeAdaption(1.0f);
+                            }
                             updatePlaybackPreferences();
                             EventBus.getDefault().post(new PlayerStatusEvent());
                         },
@@ -463,6 +548,52 @@ public class Media3PlaybackService extends MediaLibraryService {
         player.seekTo(chapters.get(nextChapter).getStart());
     }
 
+    private boolean shouldBlockForStreamingConfirmation() {
+        return currentPlayable != null
+                && (player.getPlaybackState() == Player.STATE_READY
+                    || player.getPlaybackState() == Player.STATE_BUFFERING)
+                && needsStreaming(currentPlayable)
+                && !NetworkUtils.isStreamingAllowed();
+    }
+
+    private boolean handleStreamingConfirmation() {
+        if (pendingStreamMediaId != null && player.getCurrentMediaItem() != null
+                && MediaItemAdapter.MEDIA_ID_CONFIRM_STREAMING.equals(player.getCurrentMediaItem().mediaId)) {
+            final String mediaId = pendingStreamMediaId;
+            pendingStreamMediaId = null;
+            allowStreamingThisTime = true;
+            MediaItem mediaItem = new MediaItem.Builder()
+                    .setMediaId(mediaId)
+                    .build();
+            PlaybackController.bindToMedia3Service(
+                    Media3PlaybackService.this, controller -> {
+                        controller.setMediaItem(mediaItem);
+                        controller.prepare();
+                        controller.play();
+                    });
+            return true;
+        }
+        return false;
+    }
+
+    @UnstableApi
+    private void showStreamingConfirmation(FeedMedia media) {
+        pendingStreamMediaId = String.valueOf(media.getId());
+        currentPlayable = null;
+        MediaItem confirmItem = MediaItemAdapter.buildStreamingConfirmationItem(this,
+                R.raw.no_streaming,
+                getString(R.string.confirm_mobile_streaming_notification_title),
+                getString(R.string.confirm_mobile_streaming_notification_message));
+        player.setMediaItem(confirmItem);
+        player.setPlayWhenReady(false);
+        player.prepare();
+        EventBus.getDefault().post(new StreamingConfirmationEvent());
+    }
+
+    private static boolean needsStreaming(FeedMedia media) {
+        return !media.localFileAvailable() && !URLUtil.isContentUrl(media.getStreamUrl());
+    }
+
     /**
      * Loads the next item, and starts it if continuous playback is enabled.
      */
@@ -476,19 +607,35 @@ public class Media3PlaybackService extends MediaLibraryService {
         }
         queueLoaderDisposable = Maybe.fromCallable(() -> {
             FeedItem nextItem = DBReader.getNextInQueue(item);
-            return nextItem != null && nextItem.getMedia() != null ? nextItem.getMedia() : null;
+            if (nextItem != null && nextItem.getMedia() != null) {
+                return new Pair<>(nextItem.getMedia(), MediaItemAdapter.fromPlayable(Media3PlaybackService.this, nextItem.getMedia()));
+            }
+            return null;
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        nextMedia -> {
+                        pair -> {
+                            final FeedMedia nextMedia = pair.first;
+                            final MediaItem nextMediaItem = pair.second;
+                            if (needsStreaming(nextMedia) && !NetworkUtils.isStreamingAllowed()
+                                    && !allowStreamingThisTime && UserPreferences.isFollowQueue()) {
+                                showStreamingConfirmation(nextMedia);
+                                return;
+                            }
+                            allowStreamingThisTime = false;
+
                             currentPlayable = nextMedia;
                             currentPlayable.onPlaybackStart();
-                            MediaItem mediaItem = MediaItemAdapter.fromPlayable(nextMedia);
                             PlaybackPreferences.writeMediaPlaying(nextMedia);
+                            if (nextMedia.getItem() != null && nextMedia.getItem().getFeed() != null) {
+                                volumeAdaptionFactor = nextMedia.getItem().getFeed()
+                                        .getPreferences().getVolumeAdaptionSetting().getAdaptionFactor();
+                                applyVolumeAdaption(1.0f);
+                            }
                             player.setPlayWhenReady(UserPreferences.isFollowQueue());
-                            player.setMediaItem(mediaItem);
-                            player.seekTo(nextMedia.getPosition());
+                            player.setMediaItem(nextMediaItem);
+                            player.seekTo(SkipUtils.skipIntroIfNecessary(this, nextMedia));
                             player.prepare();
                         },
                         error -> Log.e(TAG, "Failed to load next queue item", error),
@@ -506,19 +653,19 @@ public class Media3PlaybackService extends MediaLibraryService {
         if (event.isOver()) {
             Log.d(TAG, "Sleep timer expired, pausing playback");
             if (player != null) {
-                player.setVolume(1.0f);
+                applyVolumeAdaption(1.0f);
                 player.pause();
             }
             sleepTimer = null;
         } else if (event.isCancelled()) {
-            player.setVolume(1.0f);
+            applyVolumeAdaption(1.0f);
         } else if (!event.wasJustEnabled()) {
             long millisLeft = event.getMillisTimeLeft();
             if (millisLeft < SleepTimer.NOTIFICATION_THRESHOLD && millisLeft > 0) {
                 float volume = (float) millisLeft / SleepTimer.NOTIFICATION_THRESHOLD;
-                player.setVolume(Math.max(0.1f, volume));
+                applyVolumeAdaption(Math.max(0.1f, volume));
             } else {
-                player.setVolume(1.0f);
+                applyVolumeAdaption(1.0f);
             }
         }
     }
@@ -541,7 +688,7 @@ public class Media3PlaybackService extends MediaLibraryService {
             sleepTimer = null;
         }
         if (player != null) {
-            player.setVolume(1.0f);
+            applyVolumeAdaption(1.0f);
         }
     }
 
@@ -549,6 +696,64 @@ public class Media3PlaybackService extends MediaLibraryService {
         if (sleepTimer != null && sleepTimer.isActive()) {
             long currentLeft = sleepTimer.getTimeLeft().getDisplayValue();
             sleepTimer.updateRemainingTime(currentLeft + additionalTime);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    @SuppressWarnings("unused")
+    public void volumeAdaptionChanged(VolumeAdaptionChangedEvent event) {
+        if (currentPlayable != null && currentPlayable.getItem() != null
+                && currentPlayable.getItem().getFeed() != null
+                && currentPlayable.getItem().getFeed().getId() == event.getFeedId()) {
+            currentPlayable.getItem().getFeed().getPreferences()
+                    .setVolumeAdaptionSetting(event.getVolumeAdaptionSetting());
+            volumeAdaptionFactor = event.getVolumeAdaptionSetting().getAdaptionFactor();
+            applyVolumeAdaption(1.0f);
+        }
+    }
+
+    private void initLoudnessEnhancer(int audioSessionId) {
+        if (!VolumeAdaptionSetting.isBoostSupported()) {
+            return;
+        }
+        LoudnessEnhancer oldEnhancer = this.loudnessEnhancer;
+        try {
+            LoudnessEnhancer newEnhancer = new LoudnessEnhancer(audioSessionId);
+            if (oldEnhancer != null) {
+                newEnhancer.setEnabled(oldEnhancer.getEnabled());
+                if (oldEnhancer.getEnabled()) {
+                    newEnhancer.setTargetGain((int) oldEnhancer.getTargetGain());
+                }
+                oldEnhancer.release();
+            }
+            this.loudnessEnhancer = newEnhancer;
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+            this.loudnessEnhancer = null;
+        }
+    }
+
+    private void applyVolumeAdaption(float baseVolume) {
+        float v = baseVolume * volumeAdaptionFactor;
+        if (v > 1) {
+            player.setVolume(1.0f);
+            try {
+                if (loudnessEnhancer != null) {
+                    loudnessEnhancer.setEnabled(true);
+                    loudnessEnhancer.setTargetGain((int) (1000 * (v - 1)));
+                }
+            } catch (Exception e) {
+                Log.d(TAG, e.toString());
+            }
+        } else {
+            player.setVolume(v);
+            try {
+                if (loudnessEnhancer != null) {
+                    loudnessEnhancer.setEnabled(false);
+                }
+            } catch (Exception e) {
+                Log.d(TAG, e.toString());
+            }
         }
     }
 }

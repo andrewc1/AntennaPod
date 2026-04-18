@@ -113,7 +113,9 @@ public class ItemPagerFragment extends Fragment implements MaterialToolbar.OnMen
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(KEY_PAGER_ID, pager.getId());
+        if (pager != null) {
+            outState.putInt(KEY_PAGER_ID, pager.getId());
+        }
     }
 
     @Override
@@ -131,7 +133,7 @@ public class ItemPagerFragment extends Fragment implements MaterialToolbar.OnMen
         }
 
         disposable = Observable.fromCallable(() -> DBReader.getFeedItem(itemId))
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
                     item = result;

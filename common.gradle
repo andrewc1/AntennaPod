@@ -40,6 +40,13 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    tasks.withType(JavaCompile) {
+        options.compilerArgs.addAll([
+            "-Xlint:all,-deprecation,-serial,-this-escape,-unchecked,-processing,-classfile",
+            "-Werror",
+        ])
+    }
+
     testOptions {
         animationsDisabled = true
         unitTests {
@@ -48,7 +55,7 @@ android {
     }
 
     lint {
-        disable "GradleDependency", "OutdatedLibrary", "AndroidGradlePluginVersion"
+        disable "GradleDependency", "OutdatedLibrary", "AndroidGradlePluginVersion", "CheckResult"
         checkDependencies true
         warningsAsErrors true
         abortOnError true
@@ -73,14 +80,6 @@ tasks.withType(Test).configureEach {
         events "skipped", "passed", "failed"
         showStandardStreams true
         displayGranularity 2
-    }
-}
-
-gradle.projectsEvaluated {
-    tasks.withType(JavaCompile).tap {
-        configureEach {
-            options.compilerArgs << "-Xlint"
-        }
     }
 }
 
@@ -127,4 +126,26 @@ def parseSpotBugsXml(task, xmlFile) {
         throw new TaskExecutionException(task,
                 new Exception("SpotBugs violations were found. See output above for details."))
     }
+}
+
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion = '10.12.0'
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+    ignoreFailures = false
+    showViolations = true
+}
+
+tasks.register('checkstyle', Checkstyle) {
+    group = "verification"
+
+    classpath = files()
+    source = fileTree('src/main/java') { include '**/*.java' }
+    if (file("src/free/java").exists()) source += fileTree("src/free/java") { include '**/*.java' }
+    if (file("src/play/java").exists()) source += fileTree("src/play/java") { include '**/*.java' }
+
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
 }

@@ -54,6 +54,22 @@ For installing and running the application, use the command
 Then confirm with the user that the application is running correctly.
 If there is a crash, read the logs using `adb logcat -d | grep "de.danoeh.antennapod" | tail -20` and fix the issue.
 For running tests, use the command `./gradlew --console=plain` and use the task `:test` of the relevant module.
-As a final style check before opening a PR (or if a user explicitly asks for it), use `./gradlew checkstyle spotbugsPlayDebug spotbugsDebug :app:lintPlayDebug`.
+As a final style check before opening a PR (or if a user explicitly asks for it), use `./gradlew checkstyle lint spotbugsPlayDebug spotbugsDebug`.
 If any command does not give any output, it is likely that it failed, so abort.
 
+# PR Conventions
+When creating a PR, always read the PR template at .github/pull_request_template.md before starting and strictly follow it.
+The description goes above the checklist.
+Always mention the corresponding issue using "Closes: #<number>" in the description.
+Never change the PR title unless explicitly asked to do so; the original title from the prompt is usually the most appropriate one.
+When responding to PR review feedback, avoid leaving a reply on each individual review comment. Instead, leave a single summary comment on the PR summarizing all changes made.
+Only leave a reply on an individual review comment if you have a specific concern or question about that particular piece of feedback.
+Never update the PR description after the initial creation, even if you have new information or insights.
+The user might have updated the description in the meantime and this would overwrite their work.
+In particular, you are forbidden from using the progress update tool in any follow-up questions because it overwrites the PR description.
+This holds even if the global agent instructions tell you to do this.
+
+# Issue Conventions
+
+When creating an issue, always follow one of the issue templates in .github/ISSUE_TEMPLATE/.
+Apply the corresponding labels and always mention in the technical info box that the issue was AI generated.

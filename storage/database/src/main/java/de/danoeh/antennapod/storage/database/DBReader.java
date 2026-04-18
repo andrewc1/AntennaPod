@@ -73,14 +73,15 @@ public final class DBReader {
     }
 
     /**
-     * Returns a list with the download URLs of all feeds.
+     * Returns a list with the download URLs of feeds.
      *
-     * @return A list of Strings with the download URLs of all feeds.
+     * @param subscribedOnly If true, only return feeds with {@link Feed#STATE_SUBSCRIBED}.
+     * @return A list of Strings with the download URLs of matching feeds.
      */
-    public static List<String> getFeedListDownloadUrls() {
+    public static List<String> getFeedListDownloadUrls(boolean subscribedOnly) {
         PodDBAdapter adapter = PodDBAdapter.getInstance();
         adapter.open();
-        try (Cursor cursor = adapter.getFeedCursorDownloadUrls()) {
+        try (Cursor cursor = adapter.getFeedCursorDownloadUrls(subscribedOnly)) {
             List<String> result = new ArrayList<>(cursor.getCount());
             while (cursor.moveToNext()) {
                 String url = cursor.getString(1);
@@ -95,37 +96,13 @@ public final class DBReader {
     }
 
     /**
-     * Loads additional data in to the feed items from other database queries
-     *
-     * @param items the FeedItems who should have other data loaded
-     */
-    public static void loadAdditionalFeedItemListData(List<FeedItem> items) {
-        loadTagsOfFeedItemList(items);
-        loadFeedDataOfFeedItemList(items);
-    }
-
-    private static void loadTagsOfFeedItemList(List<FeedItem> items) {
-        LongList favoriteIds = getFavoriteIDList();
-        LongList queueIds = getQueueIDList();
-
-        for (FeedItem item : items) {
-            if (favoriteIds.contains(item.getId())) {
-                item.addTag(FeedItem.TAG_FAVORITE);
-            }
-            if (queueIds.contains(item.getId())) {
-                item.addTag(FeedItem.TAG_QUEUE);
-            }
-        }
-    }
-
-    /**
      * Takes a list of FeedItems and loads their corresponding Feed-objects from the database.
      * The feedID-attribute of a FeedItem must be set to the ID of its feed or the method will
      * not find the correct feed of an item.
      *
      * @param items The FeedItems whose Feed-objects should be loaded.
      */
-    private static void loadFeedDataOfFeedItemList(List<FeedItem> items) {
+    public static void loadFeedDataOfFeedItemList(List<FeedItem> items) {
         List<Feed> feeds = getFeedList();
 
         Map<Long, Feed> feedIndex = new ArrayMap<>(feeds.size());
@@ -229,24 +206,8 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor cursor = new FeedItemCursor(adapter.getQueueCursor())) {
             List<FeedItem> items = extractItemlistFromCursor(cursor);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
-        } finally {
-            adapter.close();
-        }
-    }
-
-    private static LongList getFavoriteIDList() {
-        Log.d(TAG, "getFavoriteIDList() called");
-
-        PodDBAdapter adapter = PodDBAdapter.getInstance();
-        adapter.open();
-        try (Cursor cursor = adapter.getFavoritesIdsCursor()) {
-            LongList favoriteIDs = new LongList(cursor.getCount());
-            while (cursor.moveToNext()) {
-                favoriteIDs.add(cursor.getLong(0));
-            }
-            return favoriteIDs;
         } finally {
             adapter.close();
         }
@@ -265,7 +226,7 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor cursor = new FeedItemCursor(adapter.getEpisodesCursor(offset, limit, filter, sortOrder))) {
             List<FeedItem> items = extractItemlistFromCursor(cursor);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
         } finally {
             adapter.close();
@@ -303,7 +264,7 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor cursor = new FeedItemCursor(adapter.getRandomEpisodesCursor(limit, seed))) {
             List<FeedItem> items = extractItemlistFromCursor(cursor);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
         } finally {
             adapter.close();
@@ -380,7 +341,6 @@ public final class DBReader {
                 for (FeedItem item : items) {
                     item.setFeed(feed);
                 }
-                loadTagsOfFeedItemList(items);
                 feed.setItems(items);
             } else {
                 Log.e(TAG, "getFeed could not find feed with id " + feedId);
@@ -408,7 +368,7 @@ public final class DBReader {
             List<FeedItem> list = extractItemlistFromCursor(cursor);
             if (!list.isEmpty()) {
                 FeedItem item = list.get(0);
-                loadAdditionalFeedItemListData(list);
+                loadFeedDataOfFeedItemList(list);
                 return item;
             }
         } finally {
@@ -432,7 +392,7 @@ public final class DBReader {
             List<FeedItem> list = extractItemlistFromCursor(cursor);
             if (!list.isEmpty()) {
                 FeedItem nextItem = list.get(0);
-                loadAdditionalFeedItemListData(list);
+                loadFeedDataOfFeedItemList(list);
                 return nextItem;
             }
             return null;
@@ -449,7 +409,7 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor cursor = new FeedItemCursor(adapter.getPausedQueueCursor(limit))) {
             List<FeedItem> items = extractItemlistFromCursor(cursor);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
         } finally {
             adapter.close();
@@ -462,7 +422,7 @@ public final class DBReader {
      * @param guid feed item guid
      * @param episodeUrl the feed item's url
      * @return The FeedItem or null if the FeedItem could not be found.
-     *          Does NOT load additional attributes like feed or queue state.
+     *          Does NOT load additional attributes like feed.
      */
     public static FeedItem getFeedItemByGuidOrEpisodeUrl(final String guid, final String episodeUrl) {
         PodDBAdapter adapter = PodDBAdapter.getInstance();
@@ -542,7 +502,7 @@ public final class DBReader {
                 return null;
             }
             FeedItem item = itemCursor.getFeedItem();
-            loadAdditionalFeedItemListData(Collections.singletonList(item));
+            loadFeedDataOfFeedItemList(Collections.singletonList(item));
             return item.getMedia();
         } finally {
             adapter.close();
@@ -554,7 +514,7 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor itemCursor = new FeedItemCursor(adapter.getFeedItemCursorByUrl(urls))) {
             List<FeedItem> items = extractItemlistFromCursor(itemCursor);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
         } finally {
             adapter.close();
@@ -831,7 +791,7 @@ public final class DBReader {
         adapter.open();
         try (FeedItemCursor searchResult = new FeedItemCursor(adapter.searchItems(feedId, query, state))) {
             List<FeedItem> items = extractItemlistFromCursor(searchResult);
-            loadAdditionalFeedItemListData(items);
+            loadFeedDataOfFeedItemList(items);
             return items;
         } finally {
             adapter.close();
