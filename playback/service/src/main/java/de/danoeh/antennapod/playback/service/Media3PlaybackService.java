@@ -70,6 +70,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -300,6 +301,7 @@ public class Media3PlaybackService extends MediaLibraryService {
 
         @Override
         public void onPlayerError(@NonNull PlaybackException error) {
+            PlaybackService.isRunning = false;
             EventBus.getDefault().post(new PlayerErrorEvent(
                     ExoPlayerUtils.translateErrorReason(error, Media3PlaybackService.this)));
         }
@@ -485,7 +487,7 @@ public class Media3PlaybackService extends MediaLibraryService {
         SynchronizationQueue.getInstance().enqueueEpisodePlayed(media, almostEnded);
         if (almostEnded) {
             if (item != null) {
-                DBWriter.markItemPlayed(FeedItem.PLAYED, true, item);
+                DBWriter.markItemsPlayed(FeedItem.PLAYED, true, Collections.singletonList(item));
                 DBWriter.removeQueueItem(this, true, item);
                 FeedPreferences.AutoDeleteAction action = item.getFeed().getPreferences().getCurrentAutoDelete();
                 boolean autoDeleteEnabledGlobally = UserPreferences.isAutoDelete()
