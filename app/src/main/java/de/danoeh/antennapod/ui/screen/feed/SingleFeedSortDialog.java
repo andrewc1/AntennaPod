@@ -62,6 +62,7 @@ public class SingleFeedSortDialog extends ItemSortDialog {
         if (ascending == SortOrder.DATE_OLD_NEW || ascending == SortOrder.DURATION_SHORT_LONG
                 || ascending == SortOrder.EPISODE_TITLE_A_Z
                 || (local && ascending == SortOrder.SIZE_SMALL_LARGE)
+                || (local && ascending == SortOrder.DENSITY_LOW_HIGH)
                 || (local && ascending == SortOrder.EPISODE_FILENAME_A_Z)) {
             super.onAddItem(title, ascending, descending, ascendingIsDefault);
         }
