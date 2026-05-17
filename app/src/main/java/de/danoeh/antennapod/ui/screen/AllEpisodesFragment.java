@@ -153,7 +153,7 @@ public class AllEpisodesFragment extends EpisodesListFragment {
 
         @Override
         protected void onAddItem(int title, SortOrder ascending, SortOrder descending, boolean ascendingIsDefault) {
-            if (ascending == SortOrder.DATE_OLD_NEW || ascending == SortOrder.DURATION_SHORT_LONG) {
+            if (ascending == SortOrder.DATE_OLD_NEW || ascending == SortOrder.DURATION_SHORT_LONG || ascending == SortOrder.SIZE_SMALL_LARGE) {
                 super.onAddItem(title, ascending, descending, ascendingIsDefault);
             }
         }
