@@ -58,9 +58,11 @@ public class SingleFeedSortDialog extends ItemSortDialog {
 
     @Override
     protected void onAddItem(int title, SortOrder ascending, SortOrder descending, boolean ascendingIsDefault) {
+        boolean local = getArguments().getBoolean(ARG_FEED_IS_LOCAL);
         if (ascending == SortOrder.DATE_OLD_NEW || ascending == SortOrder.DURATION_SHORT_LONG
                 || ascending == SortOrder.EPISODE_TITLE_A_Z
-                || (getArguments().getBoolean(ARG_FEED_IS_LOCAL) && ascending == SortOrder.EPISODE_FILENAME_A_Z)) {
+                || (local && ascending == SortOrder.SIZE_SMALL_LARGE)
+                || (local && ascending == SortOrder.EPISODE_FILENAME_A_Z)) {
             super.onAddItem(title, ascending, descending, ascendingIsDefault);
         }
     }
